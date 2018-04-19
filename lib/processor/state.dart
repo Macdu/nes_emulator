@@ -21,6 +21,9 @@ class State {
   /// 7 or an underflow from bit 0.
   bool carry;
 
+  /// return the carry as an int
+  int get carry_val => carry ? 1 : 0;
+
   /// Zero Flag (Z) - The zero flag is set if the result of the last instruction was zero
   bool zero;
 
