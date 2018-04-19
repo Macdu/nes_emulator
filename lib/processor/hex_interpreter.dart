@@ -19,25 +19,91 @@ class Interpreter {
     int cond = _memory[_state.pc];
     switch (cond) {
 
-      // ADC
-      case 00:
+      // 00 - BRK
+      case 0x00:
+        _cpu_cycle += 7;
+        _state.pc++;
+        _opcodes_used = 0;
+        _state.break_command = true;
+        _save_state();
+        _state.interrupt_disable = true;
+        _state.pc = _memory.irq_address;
         break;
-      /*00 - BRK                        20 - JSR
-        01 - ORA - (Indirect,X)         21 - AND - (Indirect,X)
-        02 - Future Expansion           22 - Future Expansion
-        03 - Future Expansion           23 - Future Expansion
-        04 - Future Expansion           24 - BIT - Zero Page
-        05 - ORA - Zero Page            25 - AND - Zero Page
-        06 - ASL - Zero Page            26 - ROL - Zero Page
-        07 - Future Expansion           27 - Future Expansion
-        08 - PHP                        28 - PLP
-        09 - ORA - Immediate            29 - AND - Immediate
-        0A - ASL - Accumulator          2A - ROL - Accumulator
-        0B - Future Expansion           2B - Future Expansion
-        0C - Future Expansion           2C - BIT - Absolute
-        0D - ORA - Absolute             2D - AND - Absolute
-        0E - ASL - Absolute             2E - ROL - Absolute
-        0F - Future Expansion           2F - Future Expansion
+
+      //01 - ORA - (Indirect,X)
+      case 0x01:
+        _cpu_cycle = 6;
+        _state.a = _or(_state.a, _indirect_x());
+        break;
+
+      // 02 - 04 : Future Expansion
+
+      // 05 - ORA - Zero Page
+      case 0x05:
+        _cpu_cycle = 3;
+        _state.a = _or(_state.a, _zero_page());
+        break;
+
+      // 06 - ASL - Zero Page
+      case 0x06:
+        _cpu_cycle = 5;
+        int addr = _memory[_state.pc + 1];
+        _memory[addr] = _left_shift(_zero_page());
+        break;
+
+      // 07 - Future Expansion
+
+      // 08 - PHP
+      case 0x08:
+        _cpu_cycle = 3;
+        _stack_push(_state.export_processor_status());
+        break;
+
+      // 09 - ORA - Immediate
+      case 0x09:
+        _cpu_cycle = 2;
+        _state.a = _or(_state.a, _immediate());
+        break;
+
+      // 0A - ASL - Accumulator
+      case 0x0A:
+        _cpu_cycle = 2;
+        _state.a = _left_shift(_state.a);
+        break;
+
+      // 0B - 0C : Future Expansion
+
+      // 0D - ORA - Absolute
+      case 0x0D:
+        _cpu_cycle = 4;
+        _state.a = _or(_state.a, _absolute());
+        break;
+
+      // 0E - ASL - Absolute
+      case 0x0E:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _left_shift(_memory[addr]);
+        break;
+
+      // 0F - Future Expansion
+      /*
+        20 - JSR
+        21 - AND - (Indirect,X)
+        22 - Future Expansion
+        23 - Future Expansion
+        24 - BIT - Zero Page
+        25 - AND - Zero Page
+        26 - ROL - Zero Page
+        27 - Future Expansion
+        28 - PLP
+        29 - AND - Immediate
+        2A - ROL - Accumulator
+        2B - Future Expansion
+        2C - BIT - Absolute
+        2D - AND - Absolute
+        2E - ROL - Absolute
+        2F - Future Expansion
         10 - BPL                        30 - BMI
         11 - ORA - (Indirect),Y         31 - AND - (Indirect),Y
         12 - Future Expansion           32 - Future Expansion
@@ -154,7 +220,7 @@ class Interpreter {
         DE - DEC - Absolute,X           FE - INC - Absolute,X
         DF - Future Expansion           FF - Future Expansion */
       default:
-        throw "Not Implemented";
+        throw "Opcode $cond Not Implemented";
     }
   }
 
@@ -179,5 +245,80 @@ class Interpreter {
     _zero_update(res);
     _carry_update(res);
     return res;
+  }
+
+  /// return the 8-bit result of x | y and update the state flags
+  int _or(int x, int y) {
+    int res = x | y;
+    _negative_update(res);
+    _zero_update(res);
+    return res & 0xFF;
+  }
+
+  /// left shift and updates flags
+  int _left_shift(int x) {
+    x <<= 1;
+    _carry_update(x);
+    _negative_update(x);
+    _zero_update(x);
+    return x & 0xFF;
+  }
+
+  /// push a byte onto the stack
+  void _stack_push(int byte) {
+    _memory[0x100 + _state.sp] = byte;
+    _state.sp++;
+    _state.sp &= 0xFF;
+  }
+
+  /// pull one byte from the stack
+  int _stack_pull() {
+    _state.sp--;
+    _state.sp &= 0xFF;
+    return _memory[0x100 + _state.sp];
+  }
+
+  /// save the current state in the stack
+  void _save_state() {
+    _stack_push((_state.pc >> 8) & 0xFF);
+    _stack_push(_state.pc & 0xFF);
+    _stack_push(_state.export_processor_status());
+  }
+
+  /// restore the state from the stack
+  void _restore_state() {
+    _state.load_processor_status(_stack_pull());
+    _state.pc = _stack_pull() + (_stack_pull() << 8);
+  }
+
+  /// get an indirect_x value
+  int _indirect_x() {
+    _opcodes_used++;
+    int addr = (_memory[_state.pc + 1] + _state.x) & 0xFF;
+    int loc = _memory[addr] + (_memory[(addr + 1) & 0xFF] >> 8);
+    return _memory[loc];
+  }
+
+  /// get a zero_page value
+  int _zero_page() {
+    _opcodes_used++;
+    return _memory[_memory[_state.pc + 1]];
+  }
+
+  /// get an immediate value
+  int _immediate() {
+    _opcodes_used++;
+    return _memory[_state.pc + 1];
+  }
+
+  /// get an absolute address
+  int _absolute_addr() {
+    _opcodes_used += 2;
+    return _memory[_state.pc + 1] + (_memory[_state.pc + 2] << 8);
+  }
+
+  /// get an absolute value
+  int _absolute() {
+    return _memory[_absolute_addr()];
   }
 }

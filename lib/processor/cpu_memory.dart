@@ -28,6 +28,20 @@ class CPUMemory {
     if (index >= 0x8000) {
       return _data[index];
     }
+
+    // RAM access
+    if (index < 0x2000) {
+      return _data[index];
+    }
     throw "Not Implemented yet";
   }
+
+  void operator []=(int index, int value) {
+    if (index < 0x2000) {
+      _data[index] = value;
+    }
+  }
+
+  /// return the 16-bit address when an IRQ happens
+  int get irq_address => _data[0xFFFE] + ((_data[0xFFFF]) << 8);
 }
