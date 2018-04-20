@@ -87,6 +87,65 @@ class Interpreter {
         break;
 
       // 0F - Future Expansion
+
+      // 10 - BPL
+      case 0x10:
+        _cpu_cycle = 2;
+        _branch(!_state.negative);
+        break;
+
+      // 11 - ORA - (Indirect),Y
+      case 0x11:
+        _cpu_cycle = 5;
+        _state.a = _or(_state.a, _indirect_y());
+        break;
+
+      // 12 - 14 : Future Expansion
+
+      // 15 - ORA - Zero Page,X
+      case 0x15:
+        _cpu_cycle = 4;
+        _state.a = _or(_state.a, _zero_page_x());
+        break;
+
+      // 16 - ASL - Zero Page,X
+      case 0x16:
+        _cpu_cycle = 6;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _left_shift(_memory[addr]);
+        break;
+
+      // 17 - Future Expansion
+
+      // 18 - CLC
+      case 0x18:
+        _cpu_cycle = 2;
+        _state.carry = false;
+        break;
+
+      // 19 - ORA - Absolute,Y
+      case 0x19:
+        _cpu_cycle = 4;
+        _state.a = _or(_state.a, _absolute_y());
+        break;
+
+      // 1A - 1C : Future Expansion
+
+      // 1D - ORA - Absolute,X
+      case 0x1D:
+        _cpu_cycle = 4;
+        _state.a = _or(_state.a, _absolute_x());
+        break;
+
+      // 1E - ASL - Absolute,X
+      case 0x1E:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _left_shift(_memory[addr]);
+        break;
+
+      // 1F: Future Expansion
+
       /*
         20 - JSR
         21 - AND - (Indirect,X)
@@ -104,22 +163,22 @@ class Interpreter {
         2D - AND - Absolute
         2E - ROL - Absolute
         2F - Future Expansion
-        10 - BPL                        30 - BMI
-        11 - ORA - (Indirect),Y         31 - AND - (Indirect),Y
-        12 - Future Expansion           32 - Future Expansion
-        13 - Future Expansion           33 - Future Expansion
-        14 - Future Expansion           34 - Future Expansion
-        15 - ORA - Zero Page,X          35 - AND - Zero Page,X
-        16 - ASL - Zero Page,X          36 - ROL - Zero Page,X
-        17 - Future Expansion           37 - Future Expansion
-        18 - CLC                        38 - SEC
-        19 - ORA - Absolute,Y           39 - AND - Absolute,Y
-        1A - Future Expansion           3A - Future Expansion
-        1B - Future Expansion           3B - Future Expansion
-        1C - Future Expansion           3C - Future Expansion
-        1D - ORA - Absolute,X           3D - AND - Absolute,X
-        1E - ASL - Absolute,X           3E - ROL - Absolute,X
-        1F - Future Expansion           3F - Future Expansion
+        30 - BMI
+        31 - AND - (Indirect),Y
+        32 - Future Expansion
+        33 - Future Expansion
+        34 - Future Expansion
+        35 - AND - Zero Page,X
+        36 - ROL - Zero Page,X
+        37 - Future Expansion
+        38 - SEC
+        39 - AND - Absolute,Y
+        3A - Future Expansion
+        3B - Future Expansion
+        3C - Future Expansion
+        3D - AND - Absolute,X
+        3E - ROL - Absolute,X
+        3F - Future Expansion
 
         40 - RTI                        60 - RTS
         41 - EOR - (Indirect,X)         61 - ADC - (Indirect,X)
@@ -299,10 +358,30 @@ class Interpreter {
     return _memory[loc];
   }
 
+  /// get an indirect y value
+  int _indirect_y() {
+    _opcodes_used++;
+    int addr = _memory[_state.pc + 1];
+    int loc = _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y;
+    return _memory[loc];
+  }
+
   /// get a zero_page value
   int _zero_page() {
     _opcodes_used++;
     return _memory[_memory[_state.pc + 1]];
+  }
+
+  /// get a zero_page x value
+  int _zero_page_x() {
+    _opcodes_used++;
+    return _memory[(_memory[_state.pc + 1] + _state.x) & 0xFF];
+  }
+
+  /// get a zero_page x address
+  int _zero_page_x_addr() {
+    _opcodes_used++;
+    return (_memory[_state.pc + 1] + _state.x) & 0xFF;
   }
 
   /// get an immediate value
@@ -317,8 +396,54 @@ class Interpreter {
     return _memory[_state.pc + 1] + (_memory[_state.pc + 2] << 8);
   }
 
+  /// return absolute y address
+  /// Page boundary cross doesn't imply a new cpu cycle here
+  int _absolute_y_addr() => _absolute_addr() + _state.y;
+
+  /// return absolute x address
+  /// Page boundary cross doesn't imply a new cpu cycle here
+  int _absolute_x_addr() => _absolute_(_state.x) + _state.x;
+
   /// get an absolute value
   int _absolute() {
     return _memory[_absolute_addr()];
+  }
+
+  /// return absolute y value
+  int _absolute_y() => _absolute_(_state.y);
+
+  /// return absolute x value
+  int _absolute_x() => _absolute_(_state.x);
+
+  /// return absolute value + delta
+  int _absolute_(int delta) {
+    int addr = _absolute_addr();
+    int nouv = addr + delta;
+    if ((addr & 0xFF00) != (nouv & 0XFF00)) _cpu_cycle++;
+    return nouv;
+  }
+
+  /// return a relative address
+  int _get_relative(int rel) {
+    if (rel & 0x80 != 0) {
+      rel = -(rel & (0x80 - 1));
+    }
+    int relative = _state.pc + rel;
+    // if page boundary crossed : one more cycle
+    if ((relative & 0xFF00) != (_state.pc & 0xFF00)) {
+      _cpu_cycle += 2;
+    } else {
+      _cpu_cycle++;
+    }
+    return relative;
+  }
+
+  /// branch on address (if condition is true)
+  void _branch(bool cond) {
+    _opcodes_used++;
+    if (cond) {
+      _opcodes_used = 0;
+      _state.pc = _get_relative(_memory[_state.pc + 1]);
+    }
   }
 }
