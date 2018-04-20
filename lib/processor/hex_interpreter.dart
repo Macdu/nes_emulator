@@ -22,7 +22,7 @@ class Interpreter {
       // 00 - BRK
       case 0x00:
         _cpu_cycle += 7;
-        _state.pc++;
+        _state.pc += 2;
         _opcodes_used = 0;
         _state.break_command = true;
         _save_state();
@@ -146,23 +146,93 @@ class Interpreter {
 
       // 1F: Future Expansion
 
+      // 20 - JSR
+      case 0x20:
+        _cpu_cycle = 6;
+        int addr = _absolute();
+        _state.pc++;
+        _opcodes_used = 0;
+        _save_pc();
+        _state.pc = addr;
+        break;
+
+      // 21 - AND - (Indirect,X)
+      case 0x21:
+        _cpu_cycle = 6;
+        _state.a = _and(_state.a, _indirect_x());
+        break;
+
+      // 22-23 - Future Expansion
+
+      // 24 - BIT - Zero Page
+      case 0x24:
+        _cpu_cycle = 3;
+        int val = _zero_page();
+        _zero_update(val & _state.a);
+        _negative_update(val);
+        _state.overflow = (val & 0x40) != 0;
+        break;
+
+      // 25 - AND - Zero Page
+      case 0x25:
+        _cpu_cycle = 3;
+        _state.a = _and(_state.a, _zero_page());
+        break;
+
+      // 26 - ROL - Zero Page
+      case 0x26:
+        _cpu_cycle = 5;
+        int addr = _zero_page_addr();
+        _memory[addr] = _left_rotate(_memory[addr]);
+        break;
+
+      // 27 - Future Expansion
+
+      // 28 - PLP
+      case 0x28:
+        _cpu_cycle = 4;
+        _state.load_processor_status(_stack_pull());
+        break;
+
+      // 29 - AND - Immediate
+      case 0x29:
+        _cpu_cycle = 2;
+        _state.a = _and(_state.a, _immediate());
+        break;
+
+      // 2A - ROL - Accumulator
+      case 0x2A:
+        _cpu_cycle = 2;
+        _state.a = _left_rotate(_state.a);
+        break;
+
+      // 2B - Future Expansion
+
+      // 2C - BIT - Absolute
+      case 0x2C:
+        _cpu_cycle = 4;
+        int val = _absolute();
+        _zero_update(val & _state.a);
+        _negative_update(val);
+        _state.overflow = (val & 0x40) != 0;
+        break;
+
+      // 2D - AND - Absolute
+      case 0x2D:
+        _cpu_cycle = 4;
+        _state.a = _and(_state.a, _absolute());
+        break;
+
+      // 2E - ROL - Absolute
+      case 0x2E:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _left_rotate(addr);
+        break;
+
+      // 2F - Future Expansion
+
       /*
-        20 - JSR
-        21 - AND - (Indirect,X)
-        22 - Future Expansion
-        23 - Future Expansion
-        24 - BIT - Zero Page
-        25 - AND - Zero Page
-        26 - ROL - Zero Page
-        27 - Future Expansion
-        28 - PLP
-        29 - AND - Immediate
-        2A - ROL - Accumulator
-        2B - Future Expansion
-        2C - BIT - Absolute
-        2D - AND - Absolute
-        2E - ROL - Absolute
-        2F - Future Expansion
         30 - BMI
         31 - AND - (Indirect),Y
         32 - Future Expansion
@@ -311,7 +381,7 @@ class Interpreter {
     int res = x | y;
     _negative_update(res);
     _zero_update(res);
-    return res & 0xFF;
+    return res;
   }
 
   /// left shift and updates flags
@@ -323,24 +393,50 @@ class Interpreter {
     return x & 0xFF;
   }
 
+  /// left rotate and update flags
+  int _left_rotate(int x) {
+    x <<= 1;
+    x += _state.carry_val;
+    _zero_update(x);
+    _negative_update(x);
+    _carry_update(x);
+    return x & 0xFF;
+  }
+
+  /// return the 8-bit result of x & y and update sthe state flags
+  int _and(int x, int y) {
+    int res = x & y;
+    _negative_update(res);
+    _zero_update(res);
+    return res;
+  }
+
   /// push a byte onto the stack
   void _stack_push(int byte) {
     _memory[0x100 + _state.sp] = byte;
-    _state.sp++;
-    _state.sp &= 0xFF;
+    if (_state.sp == 0) {
+      _state.sp = 0xFF;
+    } else {
+      _state.sp--;
+    }
   }
 
   /// pull one byte from the stack
   int _stack_pull() {
-    _state.sp--;
+    _state.sp++;
     _state.sp &= 0xFF;
     return _memory[0x100 + _state.sp];
   }
 
-  /// save the current state in the stack
-  void _save_state() {
+  // save the state PC in the stack
+  void _save_pc() {
     _stack_push((_state.pc >> 8) & 0xFF);
     _stack_push(_state.pc & 0xFF);
+  }
+
+  /// save the current state in the stack
+  void _save_state() {
+    _save_pc();
     _stack_push(_state.export_processor_status());
   }
 
@@ -370,6 +466,12 @@ class Interpreter {
   int _zero_page() {
     _opcodes_used++;
     return _memory[_memory[_state.pc + 1]];
+  }
+
+  /// get a zero_page address
+  int _zero_page_addr() {
+    _opcodes_used++;
+    return _memory[_state.pc + 1];
   }
 
   /// get a zero_page x value
@@ -442,7 +544,6 @@ class Interpreter {
   void _branch(bool cond) {
     _opcodes_used++;
     if (cond) {
-      _opcodes_used = 0;
       _state.pc = _get_relative(_memory[_state.pc + 1]);
     }
   }
