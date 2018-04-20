@@ -288,28 +288,95 @@ class Interpreter {
         _memory[addr] = _left_rotate(_memory[addr]);
         break;
 
+      // 3F - Future Expansion
+
       // 40 - RTI
       case 0x40:
+        _cpu_cycle = 6;
+        _restore_state();
         break;
 
-      // 3F - Future Expansion
+      // 41 - EOR - (Indirect,X)
+      case 0x41:
+        _cpu_cycle = 6;
+        _state.a = _xor(_state.a, _indirect_x());
+        break;
+
+      // 42 - 44 - Future Expansion
+
+      // 45 - EOR - Zero Page
+      case 0x45:
+        _cpu_cycle = 3;
+        _state.a = _xor(_state.a, _zero_page());
+        break;
+
+      //46 - LSR - Zero Page
+      case 0x46:
+        _cpu_cycle = 5;
+        int addr = _zero_page_addr();
+        _memory[addr] = _right_shift(_memory[addr]);
+        break;
+
+      // 47 - Future Expansion
+
+      // 48 - PHA
+      case 0x48:
+        _cpu_cycle = 3;
+        _stack_push(_state.a);
+        break;
+
+      // 49 - EOR - Immediate
+      case 0x49:
+        _cpu_cycle = 2;
+        _state.a = _xor(_state.a, _immediate());
+        break;
+
+      // 4A - LSR - Accumulator
+      case 0x4A:
+        _cpu_cycle = 2;
+        _state.a = _right_shift(_state.a);
+        break;
+
+      // 4B - Future Expansion
+
+      // 4C - JMP - Absolute
+      case 0x4C:
+        _cpu_cycle = 3;
+        _state.pc = _absolute();
+        break;
+
+      // 4D - EOR - Absolute
+      case 0x4D:
+        _cpu_cycle = 4;
+        _state.a = _xor(_state.a, _absolute());
+        break;
+
+      // 4E - LSR - Absolute
+      case 0x4E:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _right_shift(_memory[addr]);
+        break;
+
+      // 4F - Future Expansion
+
       /*
-        40 - RTI                        60 - RTS
-        41 - EOR - (Indirect,X)         61 - ADC - (Indirect,X)
-        42 - Future Expansion           62 - Future Expansion
-        43 - Future Expansion           63 - Future Expansion
-        44 - Future Expansion           64 - Future Expansion
-        45 - EOR - Zero Page            65 - ADC - Zero Page
-        46 - LSR - Zero Page            66 - ROR - Zero Page
-        47 - Future Expansion           67 - Future Expansion
-        48 - PHA                        68 - PLA
-        49 - EOR - Immediate            69 - ADC - Immediate
-        4A - LSR - Accumulator          6A - ROR - Accumulator
-        4B - Future Expansion           6B - Future Expansion
-        4C - JMP - Absolute             6C - JMP - Indirect
-        4D - EOR - Absolute             6D - ADC - Absolute
-        4E - LSR - Absolute             6E - ROR - Absolute
-        4F - Future Expansion           6F - Future Expansion
+        60 - RTS
+        61 - ADC - (Indirect,X)
+        62 - Future Expansion
+        63 - Future Expansion
+        64 - Future Expansion
+        65 - ADC - Zero Page
+        66 - ROR - Zero Page
+        67 - Future Expansion
+        68 - PLA
+        69 - ADC - Immediate
+        6A - ROR - Accumulator
+        6B - Future Expansion
+        6C - JMP - Indirect
+        6D - ADC - Absolute
+        6E - ROR - Absolute
+        6F - Future Expansion
         50 - BVC                        70 - BVS
         51 - EOR - (Indirect),Y         71 - ADC - (Indirect),Y
         52 - Future Expansion           72 - Future Expansion
@@ -428,6 +495,14 @@ class Interpreter {
     return res;
   }
 
+  /// return the 8-bit result of x ^ y and update the state flags
+  int _xor(int x, int y) {
+    int res = x ^ y;
+    _negative_update(res);
+    _zero_update(res);
+    return res;
+  }
+
   /// left shift and updates flags
   int _left_shift(int x) {
     x <<= 1;
@@ -435,6 +510,15 @@ class Interpreter {
     _negative_update(x);
     _zero_update(x);
     return x & 0xFF;
+  }
+
+  /// right shift and updates flags
+  int _right_shift(int x) {
+    _state.carry = (x & 1) == 1;
+    x >>= 1;
+    _state.negative = false;
+    _zero_update(x);
+    return x;
   }
 
   /// left rotate and update flags
