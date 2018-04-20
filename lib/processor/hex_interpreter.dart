@@ -232,24 +232,68 @@ class Interpreter {
 
       // 2F - Future Expansion
 
-      /*
-        30 - BMI
-        31 - AND - (Indirect),Y
-        32 - Future Expansion
-        33 - Future Expansion
-        34 - Future Expansion
-        35 - AND - Zero Page,X
-        36 - ROL - Zero Page,X
-        37 - Future Expansion
-        38 - SEC
-        39 - AND - Absolute,Y
-        3A - Future Expansion
-        3B - Future Expansion
-        3C - Future Expansion
-        3D - AND - Absolute,X
-        3E - ROL - Absolute,X
-        3F - Future Expansion
+      // 30 - BMI
+      case 0x30:
+        _cpu_cycle = 2;
+        _branch(_state.negative);
+        break;
 
+      // 31 - AND - (Indirect),Y
+      case 0x31:
+        _cpu_cycle = 5;
+        _state.a = _and(_state.a, _indirect_y());
+        break;
+
+      // 32 - 34 - Future Expansion
+
+      // 35 - AND - Zero Page,X
+      case 0x35:
+        _cpu_cycle = 4;
+        _state.a = _and(_state.a, _zero_page_x());
+        break;
+
+      // 36 - ROL - Zero Page,X
+      case 0x36:
+        _cpu_cycle = 6;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _left_rotate(_memory[addr]);
+        break;
+
+      // 37 - Future Expansion
+
+      // 38 - SEC
+      case 0x38:
+        _cpu_cycle = 2;
+        _state.carry = true;
+        break;
+
+      // 39 - AND - Absolute,Y
+      case 0x39:
+        _cpu_cycle = 4;
+        _state.a = _and(_state.a, _absolute_y());
+        break;
+
+      // 3A - 3C - Future Expansion
+
+      // 3D - AND - Absolute,X
+      case 0x3D:
+        _cpu_cycle = 4;
+        _state.a = _and(_state.a, _absolute_x());
+        break;
+
+      // 3E - ROL - Absolute,X
+      case 0x3E:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _left_rotate(_memory[addr]);
+        break;
+
+      // 40 - RTI
+      case 0x40:
+        break;
+
+      // 3F - Future Expansion
+      /*
         40 - RTI                        60 - RTS
         41 - EOR - (Indirect,X)         61 - ADC - (Indirect,X)
         42 - Future Expansion           62 - Future Expansion
@@ -458,7 +502,9 @@ class Interpreter {
   int _indirect_y() {
     _opcodes_used++;
     int addr = _memory[_state.pc + 1];
-    int loc = _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y;
+    addr = _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8);
+    int loc = addr + _state.y;
+    if ((addr & 0xFF00) != (loc & 0xFF00)) _cpu_cycle++;
     return _memory[loc];
   }
 
