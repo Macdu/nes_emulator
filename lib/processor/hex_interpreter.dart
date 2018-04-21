@@ -360,40 +360,196 @@ class Interpreter {
 
       // 4F - Future Expansion
 
-      /*
-        60 - RTS
-        61 - ADC - (Indirect,X)
-        62 - Future Expansion
-        63 - Future Expansion
-        64 - Future Expansion
-        65 - ADC - Zero Page
-        66 - ROR - Zero Page
-        67 - Future Expansion
-        68 - PLA
-        69 - ADC - Immediate
-        6A - ROR - Accumulator
-        6B - Future Expansion
-        6C - JMP - Indirect
-        6D - ADC - Absolute
-        6E - ROR - Absolute
-        6F - Future Expansion
-        50 - BVC                        70 - BVS
-        51 - EOR - (Indirect),Y         71 - ADC - (Indirect),Y
-        52 - Future Expansion           72 - Future Expansion
-        53 - Future Expansion           73 - Future Expansion
-        54 - Future Expansion           74 - Future Expansion
-        55 - EOR - Zero Page,X          75 - ADC - Zero Page,X
-        56 - LSR - Zero Page,X          76 - ROR - Zero Page,X
-        57 - Future Expansion           77 - Future Expansion
-        58 - CLI                        78 - SEI
-        59 - EOR - Absolute,Y           79 - ADC - Absolute,Y
-        5A - Future Expansion           7A - Future Expansion
-        5B - Future Expansion           7B - Future Expansion
-        5C - Future Expansion           7C - Future Expansion
-        50 - EOR - Absolute,X           70 - ADC - Absolute,X
-        5E - LSR - Absolute,X           7E - ROR - Absolute,X
-        5F - Future Expansion           7F - Future Expansion
+      // 50 - BVC
+      case 0x50:
+        _cpu_cycle = 2;
+        _branch(!_state.overflow);
+        break;
 
+      // 51 - EOR - (Indirect),Y
+      case 0x51:
+        _cpu_cycle = 5;
+        _state.a = _xor(_state.a, _indirect_y());
+        break;
+
+      // 52 - 54 - Future Expansion
+
+      // 55 - EOR - Zero Page,X
+      case 0x55:
+        _cpu_cycle = 4;
+        _state.a = _xor(_state.a, _zero_page());
+        break;
+
+      // 56 - LSR - Zero Page,X
+      case 0x56:
+        _cpu_cycle = 6;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _right_shift(_memory[addr]);
+        break;
+
+      // 57 - Future Expansion
+
+      // 58 - CLI
+      case 0x58:
+        _cpu_cycle = 2;
+        _state.interrupt_disable = false;
+        break;
+
+      // 59 - EOR - Absolute,Y
+      case 0x59:
+        _cpu_cycle = 4;
+        _state.a = _xor(_state.a, _absolute_y());
+        break;
+
+      // 5A - 5C - Future Expansion
+
+      // 5D - EOR - Absolute,X
+      case 0x5D:
+        _cpu_cycle = 4;
+        _state.a = _xor(_state.a, _absolute_x());
+        break;
+
+      // 5E - LSR - Absolute,X
+      case 0x5E:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _right_shift(_memory[addr]);
+        break;
+
+      // 5F - Future Expansion
+
+      // 60 - RTS
+      case 0x60:
+        _cpu_cycle = 6;
+        _restore_pc();
+        _state.pc++;
+        break;
+
+      // 61 - ADC - (Indirect,X)
+      case 0x61:
+        _cpu_cycle = 6;
+        _state.a = _adc(_state.a, _indirect_x());
+        break;
+
+      // 62 - 64 - Future Expansion
+
+      // 65 - ADC - Zero Page
+      case 0x65:
+        _cpu_cycle = 3;
+        _state.a = _adc(_state.a, _zero_page());
+        break;
+
+      // 66 - ROR - Zero Page
+      case 0x66:
+        _cpu_cycle = 5;
+        int addr = _zero_page_addr();
+        _memory[addr] = _right_rotate(_memory[addr]);
+        break;
+
+      // 67 - Future Expansion
+
+      // 68 - PLA
+      case 0x68:
+        _cpu_cycle = 4;
+        _state.a = _stack_pull();
+        break;
+
+      // 69 - ADC - Immediate
+      case 0x69:
+        _cpu_cycle = 2;
+        _state.a = _adc(_state.a, _immediate());
+        break;
+
+      // 6A - ROR - Accumulator
+      case 0x6A:
+        _cpu_cycle = 2;
+        _state.a = _right_rotate(_state.a);
+        break;
+
+      // 6B - Future Expansion
+
+      // 6C - JMP - Indirect
+      case 0x6C:
+        _cpu_cycle = 5;
+        int addr = _immediate();
+        _state.pc = _memory[addr] + (_memory[addr + 1] << 8);
+        _opcodes_used = 0;
+        break;
+
+      // 6D - ADC - Absolute
+      case 0x6D:
+        _cpu_cycle = 4;
+        _state.a = _adc(_state.a, _absolute());
+        break;
+
+      // 6E - ROR - Absolute
+      case 0x6E:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _right_rotate(_memory[addr]);
+        break;
+
+      // 6F - Future Expansion
+
+      // 70 - BVS
+      case 0x70:
+        _cpu_cycle = 2;
+        _branch(_state.overflow);
+        break;
+
+      // 71 - ADC - (Indirect),Y
+      case 0x71:
+        _cpu_cycle = 5;
+        _state.a = _adc(_state.a, _indirect_y());
+        break;
+
+      // 72 - 74 - Future Expansion
+
+      // 75 - ADC - Zero Page,X
+      case 0x75:
+        _cpu_cycle = 4;
+        _state.a = _adc(_state.a, _zero_page_x());
+        break;
+
+      // 76 - ROR - Zero Page,X
+      case 0x76:
+        _cpu_cycle = 6;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _right_rotate(_memory[addr]);
+        break;
+
+      // 77 - Future Expansion
+
+      // 78 - SEI
+      case 0x78:
+        _cpu_cycle = 2;
+        _state.interrupt_disable = true;
+        break;
+
+      // 79 - ADC - Absolute,Y
+      case 0x79:
+        _cpu_cycle = 4;
+        _state.a = _adc(_state.a, _absolute_y());
+        break;
+
+      // 7A - 7C - Future Expansion
+
+      // 7D - ADC - Absolute,X
+      case 0x7D:
+        _cpu_cycle = 4;
+        _state.a = _adc(_state.a, _absolute_x());
+        break;
+
+      // 7E - ROR - Absolute,X
+      case 0x7E:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _right_rotate(_memory[addr]);
+        break;
+
+      // 7F - Future Expansion
+
+      /*
         80 - Future Expansion           A0 - LDY - Immediate
         81 - STA - (Indirect,X)         A1 - LDA - (Indirect,X)
         82 - Future Expansion           A2 - LDX - Immediate
@@ -474,8 +630,14 @@ class Interpreter {
     _state.zero = (nb & 0xFF) == 0;
   }
 
+  /// carry flag update
   void _carry_update(int nb) {
     _state.carry = (nb > 0xFF);
+  }
+
+  /// overflow flag update
+  void _overflow_update(int x, int y, int res) {
+    _state.overflow = (((x ^ y) & 0x80) == 0) && (((x & res) & 0x80) != 0);
   }
 
   /// return the 8-bit result of x + y and update the state flags
@@ -484,6 +646,13 @@ class Interpreter {
     _negative_update(res);
     _zero_update(res);
     _carry_update(res);
+    return res;
+  }
+
+  /// adc operation and update the flags
+  int _adc(int x, int y) {
+    int res = _add(x, y + _state.carry_val);
+    _overflow_update(x, y, res);
     return res;
   }
 
@@ -531,6 +700,16 @@ class Interpreter {
     return x & 0xFF;
   }
 
+  /// right rotate and update the flags
+  int _right_rotate(int x) {
+    x &= (_state.carry_val << 8);
+    _state.carry = (x & 1) == 1;
+    x >>= 1;
+    _zero_update(x);
+    _negative_update(x);
+    return x;
+  }
+
   /// return the 8-bit result of x & y and update sthe state flags
   int _and(int x, int y) {
     int res = x & y;
@@ -568,10 +747,15 @@ class Interpreter {
     _stack_push(_state.export_processor_status());
   }
 
+  // get the PC from the stack
+  void _restore_pc() {
+    _state.pc = _stack_pull() + (_stack_pull() << 8);
+  }
+
   /// restore the state from the stack
   void _restore_state() {
     _state.load_processor_status(_stack_pull());
-    _state.pc = _stack_pull() + (_stack_pull() << 8);
+    _restore_pc();
   }
 
   /// get an indirect_x value
