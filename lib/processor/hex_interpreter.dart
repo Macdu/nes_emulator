@@ -6,14 +6,14 @@ class Interpreter {
   CPUMemory _memory;
 
   int _cpu_cycle = 0;
-  int _opcodes_used;
+  int _opcodes_used = 0;
 
   /// Create the interpreter with a state and a memory
   Interpreter(this._state, this._memory);
 
   /// evaluate the next instruction
   void eval_next_instruction() {
-    // big switch, may use somthing better
+    // big switch, may use somthing better, performance ?
     _cpu_cycle = 0;
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
@@ -851,39 +851,273 @@ class Interpreter {
 
       // BF - Future Expansion
 
-      /*
-        C0 - Cpy - Immediate            E0 - CPX - Immediate
-        C1 - CMP - (Indirect,X)         E1 - SBC - (Indirect,X)
-        C2 - Future Expansion           E2 - Future Expansion
-        C3 - Future Expansion           E3 - Future Expansion
-        C4 - CPY - Zero Page            E4 - CPX - Zero Page
-        C5 - CMP - Zero Page            E5 - SBC - Zero Page
-        C6 - DEC - Zero Page            E6 - INC - Zero Page
-        C7 - Future Expansion           E7 - Future Expansion
-        C8 - INY                        E8 - INX
-        C9 - CMP - Immediate            E9 - SBC - Immediate
-        CA - DEX                        EA - NOP
-        CB - Future Expansion           EB - Future Expansion
-        CC - CPY - Absolute             EC - CPX - Absolute
-        CD - CMP - Absolute             ED - SBC - Absolute
-        CE - DEC - Absolute             EE - INC - Absolute
-        CF - Future Expansion           EF - Future Expansion
-        D0 - BNE                        F0 - BEQ
-        D1 - CMP   (Indirect@,Y         F1 - SBC - (Indirect),Y
-        D2 - Future Expansion           F2 - Future Expansion
-        D3 - Future Expansion           F3 - Future Expansion
-        D4 - Future Expansion           F4 - Future Expansion
-        D5 - CMP - Zero Page,X          F5 - SBC - Zero Page,X
-        D6 - DEC - Zero Page,X          F6 - INC - Zero Page,X
-        D7 - Future Expansion           F7 - Future Expansion
-        D8 - CLD                        F8 - SED
-        D9 - CMP - Absolute,Y           F9 - SBC - Absolute,Y
-        DA - Future Expansion           FA - Future Expansion
-        DB - Future Expansion           FB - Future Expansion
-        DC - Future Expansion           FC - Future Expansion
-        DD - CMP - Absolute,X           FD - SBC - Absolute,X
-        DE - DEC - Absolute,X           FE - INC - Absolute,X
-        DF - Future Expansion           FF - Future Expansion */
+      // C0 - CPY - Immediate
+      case 0xC0:
+        _cpu_cycle = 2;
+        _compare(_state.y, _immediate());
+        break;
+
+      // C1 - CMP - (Indirect,X)
+      case 0xC1:
+        _cpu_cycle = 6;
+        _compare(_state.a, _indirect_x());
+        break;
+
+      // C2 - C3 - Future Expansion
+
+      // C4 - CPY - Zero Page
+      case 0xC4:
+        _cpu_cycle = 3;
+        _compare(_state.y, _zero_page());
+        break;
+
+      // C5 - CMP - Zero Page
+      case 0xC5:
+        _cpu_cycle = 3;
+        _compare(_state.a, _zero_page());
+        break;
+
+      // C6 - DEC - Zero Page
+      case 0xC6:
+        _cpu_cycle = 5;
+        int addr = _zero_page_addr();
+        _memory[addr] = _add(_memory[addr], 0xFF);
+        break;
+
+      // C7 - Future Expansion
+
+      // C8 - INY
+      case 0xC8:
+        _cpu_cycle = 2;
+        _state.y = _add(_state.y, 1);
+        break;
+
+      // C9 - CMP - Immediate
+      case 0xC9:
+        _cpu_cycle = 2;
+        _compare(_state.a, _immediate());
+        break;
+
+      // CA - DEX
+      case 0xCA:
+        _cpu_cycle = 2;
+        _state.x = _add(_state.x, 0xFF);
+        break;
+
+      // CB - Future Expansion
+
+      // CC - CPY - Absolute
+      case 0xCC:
+        _cpu_cycle = 4;
+        _compare(_state.y, _absolute());
+        break;
+
+      // CD - CMP - Absolute
+      case 0xCD:
+        _cpu_cycle = 4;
+        _compare(_state.a, _absolute());
+        break;
+
+      // CE - DEC - Absolute
+      case 0xCE:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _add(_memory[addr], 0xFF);
+        break;
+
+      // CF - Future Expansion
+
+      // D0 - BNE
+      case 0xD0:
+        _cpu_cycle = 2;
+        _branch(!_state.zero);
+        break;
+
+      // D1 - CMP   (Indirect),Y
+      case 0xD1:
+        _cpu_cycle = 5;
+        _compare(_state.a, _indirect_y());
+        break;
+
+      // D2 - D4 - Future Expansion
+
+      // D5 - CMP - Zero Page,X
+      case 0xD0:
+        _cpu_cycle = 4;
+        _compare(_state.a, _zero_page_x());
+        break;
+
+      // D6 - DEC - Zero Page,X
+      case 0xD6:
+        _cpu_cycle = 6;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _add(_memory[addr], 0xFF);
+        break;
+
+      // D7 - Future Expansion
+
+      // D8 - CLD
+      case 0xD8:
+        _cpu_cycle = 2;
+        _state.decimal_mode = false;
+        break;
+
+      // D9 - CMP - Absolute,Y
+      case 0xD9:
+        _cpu_cycle = 4;
+        _compare(_state.a, _absolute_y());
+        break;
+
+      // DA - DC - Future Expansion
+
+      // DD - CMP - Absolute,X
+      case 0xDD:
+        _cpu_cycle = 4;
+        _compare(_state.a, _absolute_y());
+        break;
+
+      // DE - DEC - Absolute,X
+      case 0xDE:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _add(_memory[addr], 0xFF);
+        break;
+
+      // DF - Future Expansion
+
+      // E0 - CPX - Immediate
+      case 0xE0:
+        _cpu_cycle = 2;
+        _compare(_state.x, _immediate());
+        break;
+
+      // E1 - SBC - (Indirect,X)
+      case 0xE1:
+        _cpu_cycle = 6;
+        _state.a = _sbc(_state.a, _indirect_x());
+        break;
+
+      // E2 - E3 - Future Expansion
+
+      // E4 - CPX - Zero Page
+      case 0xE4:
+        _cpu_cycle = 3;
+        _compare(_state.x, _zero_page());
+        break;
+
+      // E5 - SBC - Zero Page
+      case 0xE5:
+        _cpu_cycle = 4;
+        _state.a = _sbc(_state.a, _zero_page());
+        break;
+
+      // E6 - INC - Zero Page
+      case 0xE6:
+        _cpu_cycle = 5;
+        int addr = _zero_page_addr();
+        _memory[addr] = _add(_memory[addr], 1);
+        break;
+
+      // E7 - Future Expansion
+
+      // E8 - INX
+      case 0xE8:
+        _cpu_cycle = 2;
+        _state.x = _add(_state.x, 1);
+        break;
+
+      // E9 - SBC - Immediate
+      case 0xE9:
+        _cpu_cycle = 2;
+        _state.a = _sbc(_state.a, _immediate());
+        break;
+
+      // EA - NOP
+      case 0xEA:
+        _cpu_cycle = 2;
+        break;
+
+      // EB - Future Expansion
+
+      // EC - CPX - Absolute
+      case 0xEC:
+        _cpu_cycle = 4;
+        _compare(_state.x, _absolute());
+        break;
+
+      // ED - SBC - Absolute
+      case 0xED:
+        _cpu_cycle = 4;
+        _state.a = _sbc(_state.a, _absolute());
+        break;
+
+      // EE - INC - Absolute
+      case 0xEE:
+        _cpu_cycle = 6;
+        int addr = _absolute_addr();
+        _memory[addr] = _add(_memory[addr], 1);
+        break;
+
+      // EF - Future Expansion
+
+      // F0 - BEQ
+      case 0xF0:
+        _cpu_cycle = 2;
+        _branch(_state.zero);
+        break;
+
+      // F1 - SBC - (Indirect),Y
+      case 0xF1:
+        _cpu_cycle = 5;
+        _state.a = _sbc(_state.a, _indirect_y());
+        break;
+
+      // F2 - F4 - Future Expansion
+
+      // F5 - SBC - Zero Page,X
+      case 0xF5:
+        _cpu_cycle = 4;
+        _state.a = _sbc(_state.a, _zero_page_x());
+        break;
+
+      // F6 - INC - Zero Page,X
+      case 0xF6:
+        _cpu_cycle = 5;
+        int addr = _zero_page_x_addr();
+        _memory[addr] = _add(_memory[addr], 1);
+        break;
+
+      // F7 - Future Expansion
+
+      // F8 - SED
+      case 0xF8:
+        _cpu_cycle = 2;
+        _state.decimal_mode = true;
+        break;
+
+      // F9 - SBC - Absolute,Y
+      case 0xF9:
+        _cpu_cycle = 4;
+        _state.a = _sbc(_state.a, _absolute_y());
+        break;
+
+      // FA - FC - Future Expansion
+
+      // FD - SBC - Absolute,X
+      case 0xFD:
+        _cpu_cycle = 4;
+        _state.a = _sbc(_state.a, _absolute_x());
+        break;
+
+      // FE - INC - Absolute,X
+      case 0xFE:
+        _cpu_cycle = 7;
+        int addr = _absolute_x_addr();
+        _memory[addr] = _add(_memory[addr], 1);
+        break;
+
+      // FF - Future Expansion
+
       default:
         throw "Opcode $cond Not Implemented";
     }
@@ -927,6 +1161,16 @@ class Interpreter {
   int _adc(int x, int y) {
     int res = _add(x, y + _state.carry_val);
     _carry_update(res);
+    _overflow_update(x, y, res);
+    return res;
+  }
+
+  // sbc operation and update the flags
+  int _sbc(int x, int y) {
+    int res = x - y - (1 - _state.carry_val);
+    _state.carry = res >= 0;
+    res &= 0xFF;
+    _nz_update(res);
     _overflow_update(x, y, res);
     return res;
   }
@@ -991,6 +1235,16 @@ class Interpreter {
     _negative_update(res);
     _zero_update(res);
     return res;
+  }
+
+  /// return the 8-bit opposite of x
+  int _opposite(int x) => ((1 << 8) - x) & 0xFF;
+
+  /// compare x and y and update the flags
+  void _compare(int x, int y) {
+    int res = x - y;
+    _state.carry = res >= 0;
+    _nz_update(res & 0xFF);
   }
 
   /// push a byte onto the stack
