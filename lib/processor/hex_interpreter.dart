@@ -547,42 +547,311 @@ class Interpreter {
         _memory[addr] = _right_rotate(_memory[addr]);
         break;
 
-      // 7F - Future Expansion
+      // 7F - 80 - Future Expansion
+
+      // 81 - STA - (Indirect,X)
+      case 0x81:
+        _cpu_cycle = 6;
+        _memory[_indirect_x_addr()] = _state.a;
+        break;
+
+      // 82 - 83 - Future Expansion
+
+      // 84 - STY - Zero Page
+      case 0x84:
+        _cpu_cycle = 3;
+        _memory[_zero_page_addr()] = _state.y;
+        break;
+
+      // 85 - STA - Zero Page
+      case 0x85:
+        _cpu_cycle = 3;
+        _memory[_zero_page_addr()] = _state.a;
+        break;
+
+      // 86 - STX - Zero Page
+      case 0x86:
+        _cpu_cycle = 3;
+        _memory[_zero_page_addr()] = _state.x;
+        break;
+
+      // 87 - Future Expansion
+
+      // 88 - DEY
+      case 0x88:
+        _cpu_cycle = 2;
+        _state.y = _add(_state.y, 0xFF /* -1 */);
+        break;
+
+      // 89 - Future Expansion
+
+      // 8A - TXA
+      case 0x8A:
+        _cpu_cycle = 2;
+        _state.a = _state.x;
+        break;
+
+      // 8B - Future Expansion
+
+      // 8C - STY - Absolute
+      case 0x8C:
+        _cpu_cycle = 4;
+        _memory[_absolute_addr()] = _state.y;
+        break;
+
+      // 8D - STA - Absolute
+      case 0x8D:
+        _cpu_cycle = 4;
+        _memory[_absolute_addr()] = _state.a;
+        break;
+
+      // 8E - STX - Absolute
+      case 0x8E:
+        _cpu_cycle = 4;
+        _memory[_absolute_addr()] = _state.x;
+        break;
+
+      // 8F - Future Expansion
+
+      // 90 - BCC
+      case 0x90:
+        _cpu_cycle = 2;
+        _branch(!_state.carry);
+        break;
+
+      // 91 - STA - (Indirect),Y
+      case 0x91:
+        _cpu_cycle = 6;
+        _memory[_indirect_y_addr()] = _state.a;
+        break;
+
+      // 92 - 93 - Future Expansion
+
+      // 94 - STY - Zero Page,X
+      case 0x94:
+        _cpu_cycle = 4;
+        _memory[_zero_page_x_addr()] = _state.y;
+        break;
+
+      // 95 - STA - Zero Page,X
+      case 0x95:
+        _cpu_cycle = 4;
+        _memory[_zero_page_x_addr()] = _state.a;
+        break;
+
+      // 96 - STX - Zero Page,Y
+      case 0x96:
+        _cpu_cycle = 4;
+        _memory[_zero_page_y_addr()] = _state.x;
+        break;
+
+      // 97 - Future Expansion
+
+      // 98 - TYA
+      case 0x98:
+        _cpu_cycle = 2;
+        _state.a = _state.y;
+        _nz_update(_state.a);
+        break;
+
+      // 99 - STA - Absolute,Y
+      case 0x99:
+        _cpu_cycle = 5;
+        _memory[_absolute_y_addr()] = _state.a;
+        break;
+
+      // 9A - TXS
+      case 0x9A:
+        _cpu_cycle = 2;
+        _state.sp = _state.x;
+        break;
+
+      // 9B - 9C - Future Expansion
+
+      // 9D - STA - Absolute,X
+      case 0x9D:
+        _cpu_cycle = 5;
+        _memory[_absolute_x_addr()] = _state.a;
+        break;
+
+      // 9E - 9F - Future Expansion
+
+      // A0 - LDY - Immediate
+      case 0xA0:
+        _cpu_cycle = 2;
+        _state.y = _immediate();
+        _nz_update(_state.y);
+        break;
+
+      // A1 - LDA - (Indirect,X)
+      case 0xA1:
+        _cpu_cycle = 6;
+        _state.a = _indirect_x();
+        _nz_update(_state.a);
+        break;
+
+      // A2 - LDX - Immediate
+      case 0xA2:
+        _cpu_cycle = 2;
+        _state.x = _immediate();
+        _nz_update(_state.x);
+        break;
+
+      // A3 - Future Expansion
+
+      // A4 - LDY - Zero Page
+      case 0xA4:
+        _cpu_cycle = 3;
+        _state.y = _zero_page();
+        _nz_update(_state.y);
+        break;
+
+      // A5 - LDA - Zero Page
+      case 0xA5:
+        _cpu_cycle = 3;
+        _state.a = _zero_page();
+        _nz_update(_state.a);
+        break;
+
+      // A6 - LDX - Zero Page
+      case 0xA6:
+        _cpu_cycle = 3;
+        _state.x = _zero_page();
+        _nz_update(_state.x);
+        break;
+
+      // A7 - Future Expansion
+
+      // A8 - TAY
+      case 0xA8:
+        _cpu_cycle = 2;
+        _state.y = _state.a;
+        _nz_update(_state.y);
+        break;
+
+      // A9 - LDA - Immediate
+      case 0xA9:
+        _cpu_cycle = 2;
+        _state.a = _immediate();
+        _nz_update(_state.a);
+        break;
+
+      // AA - TAX
+      case 0xAA:
+        _cpu_cycle = 2;
+        _state.x = _state.a;
+        _nz_update(_state.x);
+        break;
+
+      // AB - Future Expansion
+
+      // AC - LDY - Absolute
+      case 0xAC:
+        _cpu_cycle = 4;
+        _state.y = _absolute();
+        _nz_update(_state.y);
+        break;
+
+      // AD - LDA - Absolute
+      case 0xAD:
+        _cpu_cycle = 4;
+        _state.a = _absolute();
+        _nz_update(_state.a);
+        break;
+
+      // AE - LDX - Absolute
+      case 0xAE:
+        _cpu_cycle = 4;
+        _state.x = _absolute();
+        _nz_update(_state.x);
+        break;
+
+      // AF - Future Expansion
+
+      // B0 - BCS
+      case 0xB0:
+        _cpu_cycle = 2;
+        _branch(_state.carry);
+        break;
+
+      // B1 - LDA - (Indirect),Y
+      case 0xB1:
+        _cpu_cycle = 5;
+        _state.a = _indirect_y();
+        _nz_update(_state.a);
+        break;
+
+      // B2 - B3 - Future Expansion
+
+      // B4 - LDY - Zero Page,X
+      case 0xB4:
+        _cpu_cycle = 4;
+        _state.y = _zero_page_x();
+        _nz_update(_state.y);
+        break;
+
+      // B5 - LDA - Zero Page,X
+      case 0xB5:
+        _cpu_cycle = 4;
+        _state.a = _zero_page_x();
+        _nz_update(_state.a);
+        break;
+
+      // B6 - LDX - Zero Page,Y
+      case 0xB6:
+        _cpu_cycle = 4;
+        _state.x = _zero_page_y();
+        _nz_update(_state.x);
+        break;
+
+      // B7 - Future Expansion
+
+      // B8 - CLV
+      case 0xB8:
+        _cpu_cycle = 2;
+        _state.overflow = false;
+        break;
+
+      // B9 - LDA - Absolute,Y
+      case 0xB9:
+        _cpu_cycle = 4;
+        _state.a = _absolute_y();
+        _nz_update(_state.a);
+        break;
+
+      // BA - TSX
+      case 0xBA:
+        _cpu_cycle = 2;
+        _state.x = _state.sp;
+        _nz_update(_state.x);
+        break;
+
+      // BB - Future Expansion
+
+      // BC - LDY - Absolute,X
+      case 0xBC:
+        _cpu_cycle = 4;
+        _state.y = _absolute_x();
+        _nz_update(_state.y);
+        break;
+
+      // BD - LDA - Absolute,X
+      case 0xBD:
+        _cpu_cycle = 4;
+        _state.a = _absolute_x();
+        _nz_update(_state.a);
+        break;
+
+      // BE - LDX - Absolute,Y
+      case 0xBE:
+        _cpu_cycle = 4;
+        _state.x = _absolute_x();
+        _nz_update(_state.x);
+        break;
+
+      // BF - Future Expansion
 
       /*
-        80 - Future Expansion           A0 - LDY - Immediate
-        81 - STA - (Indirect,X)         A1 - LDA - (Indirect,X)
-        82 - Future Expansion           A2 - LDX - Immediate
-        83 - Future Expansion           A3 - Future Expansion
-        84 - STY - Zero Page            A4 - LDY - Zero Page
-        85 - STA - Zero Page            A5 - LDA - Zero Page
-        86 - STX - Zero Page            A6 - LDX - Zero Page
-        87 - Future Expansion           A7 - Future Expansion
-        88 - DEY                        A8 - TAY
-        89 - Future Expansion           A9 - LDA - Immediate
-        8A - TXA                        AA - TAX
-        8B - Future Expansion           AB - Future Expansion
-        8C - STY - Absolute             AC - LDY - Absolute
-        80 - STA - Absolute             AD - LDA - Absolute
-        8E - STX - Absolute             AE - LDX - Absolute
-        8F - Future Expansion           AF - Future Expansion
-        90 - BCC                        B0 - BCS
-        91 - STA - (Indirect),Y         B1 - LDA - (Indirect),Y
-        92 - Future Expansion           B2 - Future Expansion
-        93 - Future Expansion           B3 - Future Expansion
-        94 - STY - Zero Page,X          B4 - LDY - Zero Page,X
-        95 - STA - Zero Page,X          BS - LDA - Zero Page,X
-        96 - STX - Zero Page,Y          B6 - LDX - Zero Page,Y
-        97 - Future Expansion           B7 - Future Expansion
-        98 - TYA                        B8 - CLV
-        99 - STA - Absolute,Y           B9 - LDA - Absolute,Y
-        9A - TXS                        BA - TSX
-        9B - Future Expansion           BB - Future Expansion
-        9C - Future Expansion           BC - LDY - Absolute,X
-        90 - STA - Absolute,X           BD - LDA - Absolute,X
-        9E - Future Expansion           BE - LDX - Absolute,Y
-        9F - Future Expansion           BF - Future Expansion
-
         C0 - Cpy - Immediate            E0 - CPX - Immediate
         C1 - CMP - (Indirect,X)         E1 - SBC - (Indirect,X)
         C2 - Future Expansion           E2 - Future Expansion
@@ -630,6 +899,12 @@ class Interpreter {
     _state.zero = (nb & 0xFF) == 0;
   }
 
+  /// zero and negative flag update
+  void _nz_update(int nb) {
+    _negative_update(nb);
+    _zero_update(nb);
+  }
+
   /// carry flag update
   void _carry_update(int nb) {
     _state.carry = (nb > 0xFF);
@@ -645,13 +920,13 @@ class Interpreter {
     int res = x + y;
     _negative_update(res);
     _zero_update(res);
-    _carry_update(res);
     return res;
   }
 
   /// adc operation and update the flags
   int _adc(int x, int y) {
     int res = _add(x, y + _state.carry_val);
+    _carry_update(res);
     _overflow_update(x, y, res);
     return res;
   }
@@ -776,6 +1051,20 @@ class Interpreter {
     return _memory[loc];
   }
 
+  /// get an indirect_x address
+  int _indirect_x_addr() {
+    _opcodes_used++;
+    int addr = (_memory[_state.pc + 1] + _state.x) & 0xFF;
+    return _memory[addr] + (_memory[(addr + 1) & 0xFF] >> 8);
+  }
+
+  /// get an indirect y address
+  int _indirect_y_addr() {
+    _opcodes_used++;
+    int addr = _memory[_state.pc + 1];
+    return _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y;
+  }
+
   /// get a zero_page value
   int _zero_page() {
     _opcodes_used++;
@@ -798,6 +1087,18 @@ class Interpreter {
   int _zero_page_x_addr() {
     _opcodes_used++;
     return (_memory[_state.pc + 1] + _state.x) & 0xFF;
+  }
+
+  /// get a zero_page y value
+  int _zero_page_y() {
+    _opcodes_used++;
+    return _memory[(_memory[_state.pc + 1] + _state.y) & 0xFF];
+  }
+
+  /// get a zero_page y address
+  int _zero_page_y_addr() {
+    _opcodes_used++;
+    return (_memory[_state.pc + 1] + _state.y) & 0xFF;
   }
 
   /// get an immediate value
