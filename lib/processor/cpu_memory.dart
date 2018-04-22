@@ -33,7 +33,7 @@ class CPUMemory {
     if (index < 0x2000) {
       return _data[index];
     }
-    throw "Not Implemented yet";
+    throw "Attempt to access memory location ${index.toRadixString(16)}";
   }
 
   void operator []=(int index, int value) {

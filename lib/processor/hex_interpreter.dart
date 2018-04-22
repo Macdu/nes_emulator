@@ -5,23 +5,33 @@ class Interpreter {
   State _state;
   CPUMemory _memory;
 
-  int _cpu_cycle = 0;
+  int _cpu_cycles = 0;
   int _opcodes_used = 0;
+
+  int _cycles_left = 0;
+
+  /// make on CPU cycle
+  void tick() {
+    if (_cycles_left == 0) {
+      _eval_next_instruction();
+    }
+    _cycles_left--;
+  }
 
   /// Create the interpreter with a state and a memory
   Interpreter(this._state, this._memory);
 
   /// evaluate the next instruction
-  void eval_next_instruction() {
+  void _eval_next_instruction() {
     // big switch, may use somthing better, performance ?
-    _cpu_cycle = 0;
+    _cpu_cycles = 0;
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
     switch (cond) {
 
       // 00 - BRK
       case 0x00:
-        _cpu_cycle += 7;
+        _cpu_cycles += 7;
         _state.pc += 2;
         _opcodes_used = 0;
         _state.break_command = true;
@@ -32,7 +42,7 @@ class Interpreter {
 
       //01 - ORA - (Indirect,X)
       case 0x01:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _or(_state.a, _indirect_x());
         break;
 
@@ -40,13 +50,13 @@ class Interpreter {
 
       // 05 - ORA - Zero Page
       case 0x05:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.a = _or(_state.a, _zero_page());
         break;
 
       // 06 - ASL - Zero Page
       case 0x06:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _memory[_state.pc + 1];
         _memory[addr] = _left_shift(_zero_page());
         break;
@@ -55,19 +65,19 @@ class Interpreter {
 
       // 08 - PHP
       case 0x08:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _stack_push(_state.export_processor_status());
         break;
 
       // 09 - ORA - Immediate
       case 0x09:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _or(_state.a, _immediate());
         break;
 
       // 0A - ASL - Accumulator
       case 0x0A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _left_shift(_state.a);
         break;
 
@@ -75,13 +85,13 @@ class Interpreter {
 
       // 0D - ORA - Absolute
       case 0x0D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _or(_state.a, _absolute());
         break;
 
       // 0E - ASL - Absolute
       case 0x0E:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _left_shift(_memory[addr]);
         break;
@@ -90,13 +100,13 @@ class Interpreter {
 
       // 10 - BPL
       case 0x10:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(!_state.negative);
         break;
 
       // 11 - ORA - (Indirect),Y
       case 0x11:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _or(_state.a, _indirect_y());
         break;
 
@@ -104,13 +114,13 @@ class Interpreter {
 
       // 15 - ORA - Zero Page,X
       case 0x15:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _or(_state.a, _zero_page_x());
         break;
 
       // 16 - ASL - Zero Page,X
       case 0x16:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _left_shift(_memory[addr]);
         break;
@@ -119,13 +129,13 @@ class Interpreter {
 
       // 18 - CLC
       case 0x18:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.carry = false;
         break;
 
       // 19 - ORA - Absolute,Y
       case 0x19:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _or(_state.a, _absolute_y());
         break;
 
@@ -133,13 +143,13 @@ class Interpreter {
 
       // 1D - ORA - Absolute,X
       case 0x1D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _or(_state.a, _absolute_x());
         break;
 
       // 1E - ASL - Absolute,X
       case 0x1E:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _left_shift(_memory[addr]);
         break;
@@ -148,7 +158,7 @@ class Interpreter {
 
       // 20 - JSR
       case 0x20:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute();
         _state.pc++;
         _opcodes_used = 0;
@@ -158,7 +168,7 @@ class Interpreter {
 
       // 21 - AND - (Indirect,X)
       case 0x21:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _and(_state.a, _indirect_x());
         break;
 
@@ -166,7 +176,7 @@ class Interpreter {
 
       // 24 - BIT - Zero Page
       case 0x24:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         int val = _zero_page();
         _zero_update(val & _state.a);
         _negative_update(val);
@@ -175,13 +185,13 @@ class Interpreter {
 
       // 25 - AND - Zero Page
       case 0x25:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.a = _and(_state.a, _zero_page());
         break;
 
       // 26 - ROL - Zero Page
       case 0x26:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_addr();
         _memory[addr] = _left_rotate(_memory[addr]);
         break;
@@ -190,19 +200,19 @@ class Interpreter {
 
       // 28 - PLP
       case 0x28:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.load_processor_status(_stack_pull());
         break;
 
       // 29 - AND - Immediate
       case 0x29:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _and(_state.a, _immediate());
         break;
 
       // 2A - ROL - Accumulator
       case 0x2A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _left_rotate(_state.a);
         break;
 
@@ -210,7 +220,7 @@ class Interpreter {
 
       // 2C - BIT - Absolute
       case 0x2C:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         int val = _absolute();
         _zero_update(val & _state.a);
         _negative_update(val);
@@ -219,13 +229,13 @@ class Interpreter {
 
       // 2D - AND - Absolute
       case 0x2D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _and(_state.a, _absolute());
         break;
 
       // 2E - ROL - Absolute
       case 0x2E:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _left_rotate(addr);
         break;
@@ -234,13 +244,13 @@ class Interpreter {
 
       // 30 - BMI
       case 0x30:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(_state.negative);
         break;
 
       // 31 - AND - (Indirect),Y
       case 0x31:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _and(_state.a, _indirect_y());
         break;
 
@@ -248,13 +258,13 @@ class Interpreter {
 
       // 35 - AND - Zero Page,X
       case 0x35:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _and(_state.a, _zero_page_x());
         break;
 
       // 36 - ROL - Zero Page,X
       case 0x36:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _left_rotate(_memory[addr]);
         break;
@@ -263,13 +273,13 @@ class Interpreter {
 
       // 38 - SEC
       case 0x38:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.carry = true;
         break;
 
       // 39 - AND - Absolute,Y
       case 0x39:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _and(_state.a, _absolute_y());
         break;
 
@@ -277,13 +287,13 @@ class Interpreter {
 
       // 3D - AND - Absolute,X
       case 0x3D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _and(_state.a, _absolute_x());
         break;
 
       // 3E - ROL - Absolute,X
       case 0x3E:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _left_rotate(_memory[addr]);
         break;
@@ -292,13 +302,13 @@ class Interpreter {
 
       // 40 - RTI
       case 0x40:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _restore_state();
         break;
 
       // 41 - EOR - (Indirect,X)
       case 0x41:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _xor(_state.a, _indirect_x());
         break;
 
@@ -306,13 +316,13 @@ class Interpreter {
 
       // 45 - EOR - Zero Page
       case 0x45:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.a = _xor(_state.a, _zero_page());
         break;
 
       //46 - LSR - Zero Page
       case 0x46:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_addr();
         _memory[addr] = _right_shift(_memory[addr]);
         break;
@@ -321,19 +331,19 @@ class Interpreter {
 
       // 48 - PHA
       case 0x48:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _stack_push(_state.a);
         break;
 
       // 49 - EOR - Immediate
       case 0x49:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _xor(_state.a, _immediate());
         break;
 
       // 4A - LSR - Accumulator
       case 0x4A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _right_shift(_state.a);
         break;
 
@@ -341,19 +351,19 @@ class Interpreter {
 
       // 4C - JMP - Absolute
       case 0x4C:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.pc = _absolute();
         break;
 
       // 4D - EOR - Absolute
       case 0x4D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _xor(_state.a, _absolute());
         break;
 
       // 4E - LSR - Absolute
       case 0x4E:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _right_shift(_memory[addr]);
         break;
@@ -362,13 +372,13 @@ class Interpreter {
 
       // 50 - BVC
       case 0x50:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(!_state.overflow);
         break;
 
       // 51 - EOR - (Indirect),Y
       case 0x51:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _xor(_state.a, _indirect_y());
         break;
 
@@ -376,13 +386,13 @@ class Interpreter {
 
       // 55 - EOR - Zero Page,X
       case 0x55:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _xor(_state.a, _zero_page());
         break;
 
       // 56 - LSR - Zero Page,X
       case 0x56:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _right_shift(_memory[addr]);
         break;
@@ -391,13 +401,13 @@ class Interpreter {
 
       // 58 - CLI
       case 0x58:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.interrupt_disable = false;
         break;
 
       // 59 - EOR - Absolute,Y
       case 0x59:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _xor(_state.a, _absolute_y());
         break;
 
@@ -405,13 +415,13 @@ class Interpreter {
 
       // 5D - EOR - Absolute,X
       case 0x5D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _xor(_state.a, _absolute_x());
         break;
 
       // 5E - LSR - Absolute,X
       case 0x5E:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _right_shift(_memory[addr]);
         break;
@@ -420,14 +430,14 @@ class Interpreter {
 
       // 60 - RTS
       case 0x60:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _restore_pc();
         _state.pc++;
         break;
 
       // 61 - ADC - (Indirect,X)
       case 0x61:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _adc(_state.a, _indirect_x());
         break;
 
@@ -435,13 +445,13 @@ class Interpreter {
 
       // 65 - ADC - Zero Page
       case 0x65:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.a = _adc(_state.a, _zero_page());
         break;
 
       // 66 - ROR - Zero Page
       case 0x66:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_addr();
         _memory[addr] = _right_rotate(_memory[addr]);
         break;
@@ -450,19 +460,19 @@ class Interpreter {
 
       // 68 - PLA
       case 0x68:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _stack_pull();
         break;
 
       // 69 - ADC - Immediate
       case 0x69:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _adc(_state.a, _immediate());
         break;
 
       // 6A - ROR - Accumulator
       case 0x6A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _right_rotate(_state.a);
         break;
 
@@ -470,7 +480,7 @@ class Interpreter {
 
       // 6C - JMP - Indirect
       case 0x6C:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _immediate();
         _state.pc = _memory[addr] + (_memory[addr + 1] << 8);
         _opcodes_used = 0;
@@ -478,13 +488,13 @@ class Interpreter {
 
       // 6D - ADC - Absolute
       case 0x6D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _adc(_state.a, _absolute());
         break;
 
       // 6E - ROR - Absolute
       case 0x6E:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _right_rotate(_memory[addr]);
         break;
@@ -493,13 +503,13 @@ class Interpreter {
 
       // 70 - BVS
       case 0x70:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(_state.overflow);
         break;
 
       // 71 - ADC - (Indirect),Y
       case 0x71:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _adc(_state.a, _indirect_y());
         break;
 
@@ -507,13 +517,13 @@ class Interpreter {
 
       // 75 - ADC - Zero Page,X
       case 0x75:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _adc(_state.a, _zero_page_x());
         break;
 
       // 76 - ROR - Zero Page,X
       case 0x76:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _right_rotate(_memory[addr]);
         break;
@@ -522,13 +532,13 @@ class Interpreter {
 
       // 78 - SEI
       case 0x78:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.interrupt_disable = true;
         break;
 
       // 79 - ADC - Absolute,Y
       case 0x79:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _adc(_state.a, _absolute_y());
         break;
 
@@ -536,13 +546,13 @@ class Interpreter {
 
       // 7D - ADC - Absolute,X
       case 0x7D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _adc(_state.a, _absolute_x());
         break;
 
       // 7E - ROR - Absolute,X
       case 0x7E:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _right_rotate(_memory[addr]);
         break;
@@ -551,7 +561,7 @@ class Interpreter {
 
       // 81 - STA - (Indirect,X)
       case 0x81:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _memory[_indirect_x_addr()] = _state.a;
         break;
 
@@ -559,19 +569,19 @@ class Interpreter {
 
       // 84 - STY - Zero Page
       case 0x84:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _memory[_zero_page_addr()] = _state.y;
         break;
 
       // 85 - STA - Zero Page
       case 0x85:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _memory[_zero_page_addr()] = _state.a;
         break;
 
       // 86 - STX - Zero Page
       case 0x86:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _memory[_zero_page_addr()] = _state.x;
         break;
 
@@ -579,7 +589,7 @@ class Interpreter {
 
       // 88 - DEY
       case 0x88:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.y = _add(_state.y, 0xFF /* -1 */);
         break;
 
@@ -587,7 +597,7 @@ class Interpreter {
 
       // 8A - TXA
       case 0x8A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _state.x;
         break;
 
@@ -595,19 +605,19 @@ class Interpreter {
 
       // 8C - STY - Absolute
       case 0x8C:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_absolute_addr()] = _state.y;
         break;
 
       // 8D - STA - Absolute
       case 0x8D:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_absolute_addr()] = _state.a;
         break;
 
       // 8E - STX - Absolute
       case 0x8E:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_absolute_addr()] = _state.x;
         break;
 
@@ -615,13 +625,13 @@ class Interpreter {
 
       // 90 - BCC
       case 0x90:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(!_state.carry);
         break;
 
       // 91 - STA - (Indirect),Y
       case 0x91:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _memory[_indirect_y_addr()] = _state.a;
         break;
 
@@ -629,19 +639,19 @@ class Interpreter {
 
       // 94 - STY - Zero Page,X
       case 0x94:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_zero_page_x_addr()] = _state.y;
         break;
 
       // 95 - STA - Zero Page,X
       case 0x95:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_zero_page_x_addr()] = _state.a;
         break;
 
       // 96 - STX - Zero Page,Y
       case 0x96:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _memory[_zero_page_y_addr()] = _state.x;
         break;
 
@@ -649,20 +659,20 @@ class Interpreter {
 
       // 98 - TYA
       case 0x98:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _state.y;
         _nz_update(_state.a);
         break;
 
       // 99 - STA - Absolute,Y
       case 0x99:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _memory[_absolute_y_addr()] = _state.a;
         break;
 
       // 9A - TXS
       case 0x9A:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.sp = _state.x;
         break;
 
@@ -670,7 +680,7 @@ class Interpreter {
 
       // 9D - STA - Absolute,X
       case 0x9D:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _memory[_absolute_x_addr()] = _state.a;
         break;
 
@@ -678,21 +688,21 @@ class Interpreter {
 
       // A0 - LDY - Immediate
       case 0xA0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.y = _immediate();
         _nz_update(_state.y);
         break;
 
       // A1 - LDA - (Indirect,X)
       case 0xA1:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _indirect_x();
         _nz_update(_state.a);
         break;
 
       // A2 - LDX - Immediate
       case 0xA2:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.x = _immediate();
         _nz_update(_state.x);
         break;
@@ -701,21 +711,21 @@ class Interpreter {
 
       // A4 - LDY - Zero Page
       case 0xA4:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.y = _zero_page();
         _nz_update(_state.y);
         break;
 
       // A5 - LDA - Zero Page
       case 0xA5:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.a = _zero_page();
         _nz_update(_state.a);
         break;
 
       // A6 - LDX - Zero Page
       case 0xA6:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _state.x = _zero_page();
         _nz_update(_state.x);
         break;
@@ -724,21 +734,21 @@ class Interpreter {
 
       // A8 - TAY
       case 0xA8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.y = _state.a;
         _nz_update(_state.y);
         break;
 
       // A9 - LDA - Immediate
       case 0xA9:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _immediate();
         _nz_update(_state.a);
         break;
 
       // AA - TAX
       case 0xAA:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.x = _state.a;
         _nz_update(_state.x);
         break;
@@ -747,21 +757,21 @@ class Interpreter {
 
       // AC - LDY - Absolute
       case 0xAC:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.y = _absolute();
         _nz_update(_state.y);
         break;
 
       // AD - LDA - Absolute
       case 0xAD:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _absolute();
         _nz_update(_state.a);
         break;
 
       // AE - LDX - Absolute
       case 0xAE:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.x = _absolute();
         _nz_update(_state.x);
         break;
@@ -770,13 +780,13 @@ class Interpreter {
 
       // B0 - BCS
       case 0xB0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(_state.carry);
         break;
 
       // B1 - LDA - (Indirect),Y
       case 0xB1:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _indirect_y();
         _nz_update(_state.a);
         break;
@@ -785,21 +795,21 @@ class Interpreter {
 
       // B4 - LDY - Zero Page,X
       case 0xB4:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.y = _zero_page_x();
         _nz_update(_state.y);
         break;
 
       // B5 - LDA - Zero Page,X
       case 0xB5:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _zero_page_x();
         _nz_update(_state.a);
         break;
 
       // B6 - LDX - Zero Page,Y
       case 0xB6:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.x = _zero_page_y();
         _nz_update(_state.x);
         break;
@@ -808,20 +818,20 @@ class Interpreter {
 
       // B8 - CLV
       case 0xB8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.overflow = false;
         break;
 
       // B9 - LDA - Absolute,Y
       case 0xB9:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _absolute_y();
         _nz_update(_state.a);
         break;
 
       // BA - TSX
       case 0xBA:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.x = _state.sp;
         _nz_update(_state.x);
         break;
@@ -830,21 +840,21 @@ class Interpreter {
 
       // BC - LDY - Absolute,X
       case 0xBC:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.y = _absolute_x();
         _nz_update(_state.y);
         break;
 
       // BD - LDA - Absolute,X
       case 0xBD:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _absolute_x();
         _nz_update(_state.a);
         break;
 
       // BE - LDX - Absolute,Y
       case 0xBE:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.x = _absolute_x();
         _nz_update(_state.x);
         break;
@@ -853,13 +863,13 @@ class Interpreter {
 
       // C0 - CPY - Immediate
       case 0xC0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _compare(_state.y, _immediate());
         break;
 
       // C1 - CMP - (Indirect,X)
       case 0xC1:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _compare(_state.a, _indirect_x());
         break;
 
@@ -867,19 +877,19 @@ class Interpreter {
 
       // C4 - CPY - Zero Page
       case 0xC4:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _compare(_state.y, _zero_page());
         break;
 
       // C5 - CMP - Zero Page
       case 0xC5:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _compare(_state.a, _zero_page());
         break;
 
       // C6 - DEC - Zero Page
       case 0xC6:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_addr();
         _memory[addr] = _add(_memory[addr], 0xFF);
         break;
@@ -888,19 +898,19 @@ class Interpreter {
 
       // C8 - INY
       case 0xC8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.y = _add(_state.y, 1);
         break;
 
       // C9 - CMP - Immediate
       case 0xC9:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _compare(_state.a, _immediate());
         break;
 
       // CA - DEX
       case 0xCA:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.x = _add(_state.x, 0xFF);
         break;
 
@@ -908,19 +918,19 @@ class Interpreter {
 
       // CC - CPY - Absolute
       case 0xCC:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.y, _absolute());
         break;
 
       // CD - CMP - Absolute
       case 0xCD:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.a, _absolute());
         break;
 
       // CE - DEC - Absolute
       case 0xCE:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _add(_memory[addr], 0xFF);
         break;
@@ -929,13 +939,13 @@ class Interpreter {
 
       // D0 - BNE
       case 0xD0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(!_state.zero);
         break;
 
       // D1 - CMP   (Indirect),Y
       case 0xD1:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _compare(_state.a, _indirect_y());
         break;
 
@@ -943,13 +953,13 @@ class Interpreter {
 
       // D5 - CMP - Zero Page,X
       case 0xD0:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.a, _zero_page_x());
         break;
 
       // D6 - DEC - Zero Page,X
       case 0xD6:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _add(_memory[addr], 0xFF);
         break;
@@ -958,13 +968,13 @@ class Interpreter {
 
       // D8 - CLD
       case 0xD8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.decimal_mode = false;
         break;
 
       // D9 - CMP - Absolute,Y
       case 0xD9:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.a, _absolute_y());
         break;
 
@@ -972,13 +982,13 @@ class Interpreter {
 
       // DD - CMP - Absolute,X
       case 0xDD:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.a, _absolute_y());
         break;
 
       // DE - DEC - Absolute,X
       case 0xDE:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _add(_memory[addr], 0xFF);
         break;
@@ -987,13 +997,13 @@ class Interpreter {
 
       // E0 - CPX - Immediate
       case 0xE0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _compare(_state.x, _immediate());
         break;
 
       // E1 - SBC - (Indirect,X)
       case 0xE1:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         _state.a = _sbc(_state.a, _indirect_x());
         break;
 
@@ -1001,19 +1011,19 @@ class Interpreter {
 
       // E4 - CPX - Zero Page
       case 0xE4:
-        _cpu_cycle = 3;
+        _cpu_cycles = 3;
         _compare(_state.x, _zero_page());
         break;
 
       // E5 - SBC - Zero Page
       case 0xE5:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _sbc(_state.a, _zero_page());
         break;
 
       // E6 - INC - Zero Page
       case 0xE6:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_addr();
         _memory[addr] = _add(_memory[addr], 1);
         break;
@@ -1022,38 +1032,38 @@ class Interpreter {
 
       // E8 - INX
       case 0xE8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.x = _add(_state.x, 1);
         break;
 
       // E9 - SBC - Immediate
       case 0xE9:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.a = _sbc(_state.a, _immediate());
         break;
 
       // EA - NOP
       case 0xEA:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         break;
 
       // EB - Future Expansion
 
       // EC - CPX - Absolute
       case 0xEC:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _compare(_state.x, _absolute());
         break;
 
       // ED - SBC - Absolute
       case 0xED:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _sbc(_state.a, _absolute());
         break;
 
       // EE - INC - Absolute
       case 0xEE:
-        _cpu_cycle = 6;
+        _cpu_cycles = 6;
         int addr = _absolute_addr();
         _memory[addr] = _add(_memory[addr], 1);
         break;
@@ -1062,13 +1072,13 @@ class Interpreter {
 
       // F0 - BEQ
       case 0xF0:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _branch(_state.zero);
         break;
 
       // F1 - SBC - (Indirect),Y
       case 0xF1:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         _state.a = _sbc(_state.a, _indirect_y());
         break;
 
@@ -1076,13 +1086,13 @@ class Interpreter {
 
       // F5 - SBC - Zero Page,X
       case 0xF5:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _sbc(_state.a, _zero_page_x());
         break;
 
       // F6 - INC - Zero Page,X
       case 0xF6:
-        _cpu_cycle = 5;
+        _cpu_cycles = 5;
         int addr = _zero_page_x_addr();
         _memory[addr] = _add(_memory[addr], 1);
         break;
@@ -1091,13 +1101,13 @@ class Interpreter {
 
       // F8 - SED
       case 0xF8:
-        _cpu_cycle = 2;
+        _cpu_cycles = 2;
         _state.decimal_mode = true;
         break;
 
       // F9 - SBC - Absolute,Y
       case 0xF9:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _sbc(_state.a, _absolute_y());
         break;
 
@@ -1105,13 +1115,13 @@ class Interpreter {
 
       // FD - SBC - Absolute,X
       case 0xFD:
-        _cpu_cycle = 4;
+        _cpu_cycles = 4;
         _state.a = _sbc(_state.a, _absolute_x());
         break;
 
       // FE - INC - Absolute,X
       case 0xFE:
-        _cpu_cycle = 7;
+        _cpu_cycles = 7;
         int addr = _absolute_x_addr();
         _memory[addr] = _add(_memory[addr], 1);
         break;
@@ -1121,6 +1131,8 @@ class Interpreter {
       default:
         throw "Opcode $cond Not Implemented";
     }
+    _state.pc += _opcodes_used;
+    _cycles_left += _cpu_cycles;
   }
 
   /// negative flag update
@@ -1301,7 +1313,7 @@ class Interpreter {
     int addr = _memory[_state.pc + 1];
     addr = _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8);
     int loc = addr + _state.y;
-    if ((addr & 0xFF00) != (loc & 0xFF00)) _cpu_cycle++;
+    if ((addr & 0xFF00) != (loc & 0xFF00)) _cpu_cycles++;
     return _memory[loc];
   }
 
@@ -1390,7 +1402,7 @@ class Interpreter {
   int _absolute_(int delta) {
     int addr = _absolute_addr();
     int nouv = addr + delta;
-    if ((addr & 0xFF00) != (nouv & 0XFF00)) _cpu_cycle++;
+    if ((addr & 0xFF00) != (nouv & 0XFF00)) _cpu_cycles++;
     return nouv;
   }
 
@@ -1402,9 +1414,9 @@ class Interpreter {
     int relative = _state.pc + rel;
     // if page boundary crossed : one more cycle
     if ((relative & 0xFF00) != (_state.pc & 0xFF00)) {
-      _cpu_cycle += 2;
+      _cpu_cycles += 2;
     } else {
-      _cpu_cycle++;
+      _cpu_cycles++;
     }
     return relative;
   }
@@ -1415,5 +1427,10 @@ class Interpreter {
     if (cond) {
       _state.pc = _get_relative(_memory[_state.pc + 1]);
     }
+  }
+
+  /// read a 16-bit address with little endian located at addr and addr+1
+  int _read_16bit_addr(int addr) {
+    return _memory[addr] | (_memory[addr + 1] << 8);
   }
 }
