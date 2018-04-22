@@ -1,4 +1,4 @@
-part of nes.processor;
+part of nes.cpu;
 
 /// State of the 6502 processor
 class State {

@@ -1,4 +1,4 @@
-library nes.processor;
+library nes.cpu;
 
 import 'dart:typed_data';
 
@@ -18,13 +18,13 @@ enum InterruptType {
   RESET
 }
 
-/// Simulate a 6502 processor
-class NESProcessor {
+/// Simulate a 6502 cpu
+class CPU {
   final CPUMemory memory = new CPUMemory();
   final State state = new State();
   Interpreter _interpreter;
 
-  NESProcessor() {
+  CPU() {
     state.load_processor_status(0);
     _interpreter = new Interpreter(state, memory);
   }

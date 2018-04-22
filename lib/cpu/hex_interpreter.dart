@@ -1,4 +1,4 @@
-part of nes.processor;
+part of nes.cpu;
 
 /// 6502 interpreter
 class Interpreter {

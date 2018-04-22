@@ -1,4 +1,4 @@
-part of nes.processor;
+part of nes.cpu;
 
 class CPUMemory {
   /// The NES processor has a 16-bit address bus
