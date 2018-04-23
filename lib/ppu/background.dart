@@ -6,8 +6,6 @@ class Background {
 
   PPU _ppu;
 
-  Background();
-
   /// return the palette for the background
   List<Color> _read_palette() {
     List<Color> res = new List<Color>(16);

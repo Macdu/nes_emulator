@@ -11,7 +11,7 @@ class Color {
 }
 
 // the current transparent color
-Color _transparent = Color(0x22222222);
+Color _transparent;
 
 /// nes color palette from http://nesdev.com/nespal.txt
 const List<Color> nes_palette = [
