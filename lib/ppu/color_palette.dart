@@ -10,6 +10,9 @@ class Color {
         b = hex & 0xFF;
 }
 
+// the current transparent color
+Color _transparent = Color(0x22222222);
+
 /// nes color palette from http://nesdev.com/nespal.txt
 const List<Color> nes_palette = [
   Color(0x808080),
