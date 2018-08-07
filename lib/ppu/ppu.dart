@@ -3,6 +3,8 @@ library nes.ppu;
 import 'dart:html' show CanvasElement, CanvasRenderingContext2D, ImageData;
 import 'dart:typed_data';
 
+import '../cpu/cpu.dart';
+
 part 'ppu_memory.dart';
 part 'color_palette.dart';
 part 'background.dart';
@@ -36,34 +38,59 @@ class PPU {
 
   /// return the pattern table the background is stored in
   /// 0 : $0000; 1 : $1000
-  int get pattern_background_location => 0;
+  /// located in control register 1 bit 4
+  int get pattern_background_location => (memory.control_register_1 >> 4) & 1;
 
   /// return the pattern table the sprites are stored in
   /// 0 : $0000; 1 : $1000
-  int get pattern_sprites_location => 0;
+  /// located in control register 1 bit 3
+  int get pattern_sprites_location => (memory.control_register_1 >> 3) & 1;
 
   /// return if sprites should be displayed
-  bool get displaySprite => false;
+  /// located in control register 2 bit 4
+  bool get displaySprite => ((memory.control_register_2 >> 4) & 1) == 1;
 
   /// return if the background should be displayed
-  bool get displayBackground => false;
+  /// located in control register 2 bit 3
+  bool get displayBackground => ((memory.control_register_2 >> 3) & 1) == 1;
 
-  int get x_scroll => 0;
+  /// See [PPUMemory.x_scroll]
+  int get x_scroll => memory.x_scroll;
 
-  int get y_scroll => 0;
-
-  /// true : horizontal scrolling
-  /// false : vertical scrolling
-  bool get isHorizontalScroll => true;
+  /// See [PPUMemory.y_scroll]
+  int get y_scroll => memory.y_scroll;
 
   /// if the sprites are 8x8 or 8x16
-  bool get has8x16Sprites => false;
+  /// located in control register 1 bit 5
+  bool get has8x16Sprites => ((memory.control_register_1 >> 5) & 1) == 1;
+
+  /// located in control register 2 bit 3
+  bool get background_enabled => ((memory.control_register_2 >> 3) & 1) == 1;
+
+  /// located in control register 2 bit 2
+  bool get sprites_enabled => ((memory.control_register_2 >> 2) & 1) == 1;
 
   /// set the sprite 0 hit flag
-  set sprite0_hit_flag(bool flag) => null;
+  /// located in bit 6 status register
+  set sprite0_hit_flag(bool flag) => flag
+      ? memory.status_register |= (1 << 6)
+      : memory.status_register &= ~(1 << 6);
 
   /// set the overflow flag
-  set overflow_flag(bool flag) => null;
+  /// located in bit 5 status register
+  set overflow_flag(bool flag) => flag
+      ? memory.status_register |= (1 << 5)
+      : memory.status_register &= ~(1 << 5);
+
+  /// set the V-blank flag
+  /// located in bit 7 status register
+  set v_blank_flag(bool flag) => flag
+      ? memory.status_register |= (1 << 7)
+      : memory.status_register &= ~(1 << 7);
+
+  /// return the CPU related to this PPU
+  CPU get cpu => _cpu;
+  CPU _cpu;
 
   PPU(this._canvasToDraw) {
     _background._ppu = this;
@@ -80,6 +107,8 @@ class PPU {
       // start a new scanline
       _curr_scanline++;
       _curr_scanline %= 262;
+
+      _pixels_left = 256;
 
       if (_curr_scanline == 0) {
         // start a new frame
@@ -100,9 +129,13 @@ class PPU {
         // flag update is done during the first tick and not the second
         // hopefully this doesn't have an effect
         if (_curr_scanline == 241) {
-          //TODO: set V_Blank flag
+          v_blank_flag = true;
+          // causes an NMI
+          _cpu.interrupt(InterruptType.NMI);
         } else if (_curr_scanline == 261) {
-          //TODO: clear V_Blank, Sprite 0 and overflow flag
+          v_blank_flag = false;
+          overflow_flag = false;
+          sprite0_hit_flag = false;
         }
       } else {
         _render_line();

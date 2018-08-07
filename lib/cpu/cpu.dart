@@ -2,6 +2,9 @@ library nes.cpu;
 
 import 'dart:typed_data';
 
+import '../ppu/ppu.dart';
+import '../gamepad/gamepad.dart';
+
 part "cpu_memory.dart";
 part "state.dart";
 part "hex_interpreter.dart";
@@ -20,13 +23,23 @@ enum InterruptType {
 
 /// Simulate a 6502 cpu
 class CPU {
+  /// the CPU memory
   final CPUMemory memory = new CPUMemory();
   final State state = new State();
   Interpreter _interpreter;
 
+  /// access to the PPU
+  PPU get ppu => _ppu;
+  PPU _ppu;
+
+  /// access to the gamepad
+  GamePad get gamepad => _gamepad;
+  GamePad _gamepad;
+
   CPU() {
     state.load_processor_status(0);
     _interpreter = new Interpreter(state, memory);
+    memory._cpu = this;
   }
 
   void interrupt(InterruptType type) {
@@ -39,7 +52,7 @@ class CPU {
         }
         break;
       case InterruptType.NMI:
-        if ((memory[0x2000] & 0x80) != 0) {
+        if ((_ppu.memory.control_register_1 & 0x80) != 0) {
           // if bit 7 of PPU control register 1 is not clear, causes interrupt
           state.pc = _interpreter._read_16bit_addr(0xFFFA);
         }

@@ -1249,9 +1249,6 @@ class Interpreter {
     return res;
   }
 
-  /// return the 8-bit opposite of x
-  int _opposite(int x) => ((1 << 8) - x) & 0xFF;
-
   /// compare x and y and update the flags
   void _compare(int x, int y) {
     int res = x - y;
