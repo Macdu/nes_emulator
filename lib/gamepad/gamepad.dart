@@ -45,7 +45,7 @@ class GamePad {
     document.body.onKeyUp.listen(_key_change(false));
   }
 
-  Function _key_change(bool flag) => (KeyEvent event) {
+  Function _key_change(bool flag) => (KeyboardEvent event) {
         int key = event.keyCode;
         if (key == a_key)
           a_pressed = flag;
@@ -64,6 +64,7 @@ class GamePad {
         else if (key == left_key)
           left_pressed = flag;
         else if (key == right_key) right_pressed = flag;
+        return;
       };
 
   /// id correspond to the order the key states are given to the nes

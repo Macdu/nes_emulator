@@ -35,13 +35,13 @@ class CPUMemory {
   /// load a 16-bit upper part of the PGR
   /// located at $C000-$CFFF
   void load_PGR_upper(Uint8List from, int start) {
-    _copy_memory(from, start, 1 << 16, 0xC000);
+    _copy_memory(from, start, 1 << 14, 0xC000);
   }
 
   /// load the 16-bit lower part of the PGR
   /// located at $8000-$8FFF
   void load_PGR_lower(Uint8List from, int start) {
-    _copy_memory(from, start, 1 << 16, 0x8000);
+    _copy_memory(from, start, 1 << 14, 0x8000);
   }
 
   void _copy_memory(Uint8List from, int start, int length, int to) {
@@ -95,13 +95,14 @@ class CPUMemory {
 
       case 0x4016:
         // joypad 1 state
-        bool res = _cpu._gamepad.is_pressed(_curr_button_id);
+        bool res = _cpu.gamepad.is_pressed(_curr_button_id);
         _curr_button_id++;
         _curr_button_id &= 7;
         return res ? 1 : 0;
 
       case 0x4017:
         // joypad 2 register
+        print("Attempt to access player 2 gamepad");
         return 0;
 
       default:

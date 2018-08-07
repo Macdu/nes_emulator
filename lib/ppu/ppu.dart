@@ -92,23 +92,24 @@ class PPU {
   CPU get cpu => _cpu;
   CPU _cpu;
 
-  PPU(this._canvasToDraw) {
+  void init(CanvasElement target) {
+    _canvasToDraw = target;
     _background._ppu = this;
     _ctx = _canvasToDraw.context2D;
     _screen = _ctx.createImageData(256, 240);
   }
 
   int _curr_scanline = 0;
-  int _pixels_left = 0;
+  int _cycles_left = 0;
 
   /// make one CPU tick
   void tick() {
-    if (_pixels_left == 0) {
+    if (_cycles_left == 0) {
       // start a new scanline
       _curr_scanline++;
       _curr_scanline %= 262;
 
-      _pixels_left = 256;
+      _cycles_left = 341;
 
       if (_curr_scanline == 0) {
         // start a new frame
@@ -142,7 +143,8 @@ class PPU {
       }
     }
 
-    _pixels_left--;
+    // there are 3 ppu cycles per cpu cycle
+    _cycles_left -= 3;
   }
 
   /// render the current line

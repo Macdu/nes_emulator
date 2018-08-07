@@ -30,11 +30,10 @@ class CPU {
 
   /// access to the PPU
   PPU get ppu => _ppu;
-  PPU _ppu;
+  PPU _ppu = new PPU();
 
   /// access to the gamepad
-  GamePad get gamepad => _gamepad;
-  GamePad _gamepad;
+  GamePad gamepad;
 
   CPU() {
     state.load_processor_status(0);
@@ -61,5 +60,10 @@ class CPU {
         state.pc = _interpreter._read_16bit_addr(0xFFFC);
         break;
     }
+  }
+
+  /// make one cpu cycle
+  void tick() {
+    _interpreter.tick();
   }
 }
