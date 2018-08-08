@@ -1,5 +1,4 @@
 import 'dart:html';
-import 'dart:typed_data';
 
 import 'package:nes_emulator/emulator.dart';
 
@@ -17,6 +16,10 @@ void pause(_) {
   emu.pause();
 }
 
+void reset(_) {
+  emu.reset();
+}
+
 void loadRom(_) async {
   FileUploadInputElement fileInput = new FileUploadInputElement();
   fileInput.style.display = 'none';
@@ -28,15 +31,38 @@ void loadRom(_) async {
   FileReader reader = new FileReader();
   reader.readAsArrayBuffer(fileInput.files.first);
   await reader.onLoadEnd.first;
-  // skips the first 18 bytes of the iNES file
+
   emu.loadRom(reader.result);
 }
 
 void main() {
   emu = new NESEmulator(querySelector("#renderer"));
 
-  querySelector("#play").onClick.listen(tick);
+  querySelector("#play").onClick.listen(play);
   querySelector("#pause").onClick.listen(pause);
   querySelector("#tick").onClick.listen(tick);
   querySelector("#charge").onClick.listen(loadRom);
+  querySelector("#reset").onClick.listen(reset);
+
+  debug_info = querySelector("#debug");
+  debug_toggle = querySelector("#do-debug");
+  debug_toggle.onChange.listen((_) => debugging = debug_toggle.checked);
+  debug();
+}
+
+ParagraphElement debug_info;
+CheckboxInputElement debug_toggle;
+bool debugging = false;
+void debug() async {
+  String res = debugging
+      ? """PC: 0x${emu.cpu.state.pc.toRadixString(16)}
+  <br /> A : 0x${emu.cpu.state.a.toRadixString(16)}
+  <br /> X : 0x${emu.cpu.state.x.toRadixString(16)}
+  <br /> Y : 0x${emu.cpu.state.y.toRadixString(16)}
+  <br /> SP : 0x${emu.cpu.state.sp.toRadixString(16)}
+  <br />"""
+      : "";
+  debug_info.innerHtml = res;
+  await window.animationFrame;
+  debug();
 }

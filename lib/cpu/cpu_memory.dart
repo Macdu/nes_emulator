@@ -44,6 +44,12 @@ class CPUMemory {
     _copy_memory(from, start, 1 << 14, 0x8000);
   }
 
+  /// load a 512-byte trainer
+  /// located at $7000-$71FF
+  void load_trainer(Uint8List from, int start) {
+    _copy_memory(from, start, 512, 0x7000);
+  }
+
   void _copy_memory(Uint8List from, int start, int length, int to) {
     // Add some code to check validity ?
     for (int i = 0; i < length; i++) {
@@ -113,11 +119,13 @@ class CPUMemory {
   void operator []=(int index, int value) {
     if (index < 0x2000) {
       _data[index] = value;
+      return;
     }
 
     if ((index >= 0x4000 && index <= 0x4013) || index == 0x4015) {
       // sound, not implemented yet
       _data[index] = value;
+      return;
     }
 
     switch (index) {
@@ -164,9 +172,15 @@ class CPUMemory {
         for (int i = _sprite_memory_addr; i <= 0xFF; i++) {
           ppu_memory.spr_ram[i] = this[(value << 8) + i];
         }
+        cpu._interpreter._cpu_cycles += 512;
+        break;
+      case 0x4016:
+        // TODO: implement properly
+        break;
+      case 0x4017:
         break;
       default:
-        throw "Memory write at ${value.toRadixString(16)} not implemented";
+        throw "Memory write at 0x${index.toRadixString(16)} not implemented";
     }
   }
 

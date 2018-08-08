@@ -2,16 +2,16 @@ part of nes.ppu;
 
 /// load the sprites
 class Sprites {
-  final List<Color> _result = new List(256 * 240);
+  final List<Color> _result = new List(256 * 240 * 4);
 
   /// number of sprites in a scanline
-  final List<int> _nb_sprites = new List(240);
+  final List<int> _nb_sprites = new List.filled(240, 0);
 
   /// priority of a pixel
-  final List<bool> _has_priority = new List(256 * 240);
+  final List<bool> _has_priority = new List.filled(256 * 240, false);
 
   /// sprite 0 opaque pixels
-  final List<bool> _sprite0_opaque_pixels = new List(256 * 240);
+  final List<bool> _sprite0_opaque_pixels = new List.filled(256 * 240, false);
 
   PPU _ppu;
 
@@ -30,10 +30,10 @@ class Sprites {
   /// the sprites are rendered each frame
   void _render() {
     List<Color> palette = _read_palette();
-    _result.fillRange(0, 256 * 240 - 1, palette[0]);
-    _nb_sprites.fillRange(0, 255, 0);
-    _has_priority.fillRange(0, 256 * 240 - 1, false);
-    _sprite0_opaque_pixels.fillRange(0, 256 * 240 - 1, false);
+    _result.fillRange(0, _result.length, palette[0]);
+    _nb_sprites.fillRange(0, _nb_sprites.length, 0);
+    _has_priority.fillRange(0, _has_priority.length, false);
+    _sprite0_opaque_pixels.fillRange(0, _sprite0_opaque_pixels.length, false);
 
     int pattern_address = _ppu.pattern_sprites_location * 0x1000;
     final bool is8x16 = _ppu.has8x16Sprites;

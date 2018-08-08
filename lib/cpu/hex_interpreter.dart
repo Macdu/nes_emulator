@@ -1406,7 +1406,7 @@ class Interpreter {
   /// return a relative address
   int _get_relative(int rel) {
     if (rel & 0x80 != 0) {
-      rel = -(rel & (0x80 - 1));
+      rel = -(rel ^ (0x100 - 1)) - 1;
     }
     int relative = _state.pc + rel;
     // if page boundary crossed : one more cycle

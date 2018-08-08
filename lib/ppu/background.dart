@@ -27,8 +27,10 @@ class Background {
 
     for (int tile = 0; tile < 32 * 30 * 4; tile++) {
       table_offset = 0;
-      int col = tile >> 6;
-      int line = tile & ((1 << 6) - 1);
+      int col = tile & ((1 << 6) - 1);
+      int line = tile >> 6;
+      int old_col = col;
+      int old_line = line;
       if (line >= 32) {
         line -= 32;
         table_offset |= 0x400;
@@ -54,7 +56,8 @@ class Background {
               ((_ppu.memory[pattern + y] >> (7 - x)) & 1) |
               (((_ppu.memory[pattern + 8 + y] >> (7 - x)) & 1) << 1);
 
-          _result[tile] = palette[color];
+          _result[(old_line * 8 + y) * 256 * 2 + (old_col * 8 + x)] =
+              palette[color];
         }
       }
     }

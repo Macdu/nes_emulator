@@ -3,50 +3,50 @@ part of nes.cpu;
 /// State of the 6502 processor
 class State {
   /// 16 bit program counter
-  int pc;
+  int pc = 0;
 
   /// 8 bit stack pointer
-  int sp;
+  int sp = 0;
 
   /// 8 bit accumulator
-  int a;
+  int a = 0;
 
   /// 8 bit x index register
-  int x;
+  int x = 0;
 
   /// 8 bit y index register
-  int y;
+  int y = 0;
 
   /// Carry Flag (C) - The carry flag is set if the last instruction resulted in an overflow from bit
   /// 7 or an underflow from bit 0.
-  bool carry;
+  bool carry = false;
 
   /// return the carry as an int
   int get carry_val => carry ? 1 : 0;
 
   /// Zero Flag (Z) - The zero flag is set if the result of the last instruction was zero
-  bool zero;
+  bool zero = false;
 
   /// Interrupt Disable (I) - The interrupt disable flag can be used to prevent the system
   /// responding to IRQs
-  bool interrupt_disable;
+  bool interrupt_disable = false;
 
   /// The decimal mode flag is used to switch the 6502 into BCD mode.
   /// Not used by the NES, have no effect
-  bool decimal_mode;
+  bool decimal_mode = false;
 
   /// Break Command (B) - The break command flag is used to indicate that a BRK (Break)
   /// instruction has been executed, causing an IRQ.
-  bool break_command;
+  bool break_command = false;
 
   /// Overflow Flag (V) - The overflow flag is set if an invalid two’s complement result was
   /// obtained by the previous instruction.
-  bool overflow;
+  bool overflow = false;
 
   /// Negative Flag (N) - Bit 7 of a byte represents the sign of that byte, with 0 being positive
   /// and 1 being negative. The negative flag (also known as the sign flag) is set if this sign bit
   /// is 1.
-  bool negative;
+  bool negative = false;
 
   /// load from the stack : NV BDIZC
   void load_processor_status(int p) {

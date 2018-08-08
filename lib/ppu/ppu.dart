@@ -92,19 +92,22 @@ class PPU {
   CPU get cpu => _cpu;
   CPU _cpu;
 
-  void init(CanvasElement target) {
+  void init(CanvasElement target, CPU cpu) {
     _canvasToDraw = target;
     _background._ppu = this;
+    _sprites._ppu = this;
     _ctx = _canvasToDraw.context2D;
     _screen = _ctx.createImageData(256, 240);
+    this._cpu = cpu;
   }
 
-  int _curr_scanline = 0;
+  // starts the first tick at scanline 0
+  int _curr_scanline = 261;
   int _cycles_left = 0;
 
   /// make one CPU tick
   void tick() {
-    if (_cycles_left == 0) {
+    if (_cycles_left <= 0) {
       // start a new scanline
       _curr_scanline++;
       _curr_scanline %= 262;
