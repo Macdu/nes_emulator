@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <canvas id="renderer"></canvas>
+    <canvas id="renderer" width="512px" height="480px"></canvas>
     <div>
         <button id="play">Play</button>
         <button id="pause">Pause</button>
@@ -19,6 +19,14 @@
     <input type="checkbox" id="do-debug" /> Debug ?
     <p id="debug">
 
+    </p>
+    <p>
+        <input type="text" value="0" id="cpu-entry" />
+        <span id="cpu-value"></span>
+    </p>
+    <p>
+        <input type="text" value="0" id="ppu-entry" />
+        <span id="ppu-value"></span>
     </p>
 </body>
 

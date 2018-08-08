@@ -48,6 +48,11 @@ void main() {
   debug_toggle = querySelector("#do-debug");
   debug_toggle.onChange.listen((_) => debugging = debug_toggle.checked);
   debug();
+
+  cpu_part = querySelector("#cpu-value");
+  ppu_part = querySelector("#ppu-value");
+  querySelector("#cpu-entry").onClick.listen(debug_cpu);
+  querySelector("#ppu-entry").onClick.listen(debug_ppu);
 }
 
 ParagraphElement debug_info;
@@ -65,4 +70,15 @@ void debug() async {
   debug_info.innerHtml = res;
   await window.animationFrame;
   debug();
+}
+
+SpanElement cpu_part, ppu_part;
+void debug_cpu(Event event) {
+  int location = int.parse((event.target as TextInputElement).value, radix: 16);
+  cpu_part.innerHtml = "0x${emu.cpu.memory[location].toRadixString(16)}";
+}
+
+void debug_ppu(Event event) {
+  int location = int.parse((event.target as TextInputElement).value, radix: 16);
+  ppu_part.innerHtml = "0x${emu.ppu.memory[location].toRadixString(16)}";
 }
