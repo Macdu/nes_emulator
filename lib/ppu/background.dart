@@ -31,12 +31,12 @@ class Background {
       int line = tile >> 6;
       int old_col = col;
       int old_line = line;
-      if (line >= 32) {
-        line -= 32;
+      if (line >= 30) {
+        line -= 30;
         table_offset |= 0x400;
       }
-      if (col >= 30) {
-        col -= 30;
+      if (col >= 32) {
+        col -= 32;
         table_offset |= 0x800;
       }
       int real_tile = line * 32 + col;
