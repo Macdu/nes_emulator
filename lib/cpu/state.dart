@@ -63,14 +63,14 @@ class State {
   /// export to the stack : NV BDIZC
   int export_processor_status() {
     int p = 0;
-    if (carry) p &= 0x01;
-    if (zero) p &= 0x02;
-    if (interrupt_disable) p &= 0x04;
-    if (decimal_mode) p &= 0x08;
-    if (break_command) p &= 0x10;
+    if (carry) p |= 0x01;
+    if (zero) p |= 0x02;
+    if (interrupt_disable) p |= 0x04;
+    if (decimal_mode) p |= 0x08;
+    if (break_command) p |= 0x10;
 
-    if (negative) p &= 0x40;
-    if (overflow) p &= 0x80;
+    if (negative) p |= 0x40;
+    if (overflow) p |= 0x80;
     return p;
   }
 }
