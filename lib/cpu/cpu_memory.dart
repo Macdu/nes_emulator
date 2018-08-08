@@ -165,7 +165,7 @@ class CPUMemory {
       case 0x2007:
         ppu_memory[_ppu_memory_addr] = value;
         _ppu_memory_addr += _ppu_addr_increase;
-        _ppu_memory_addr |= 0xFFFF;
+        _ppu_memory_addr &= 0xFFFF;
         break;
       case 0x4014:
         // DMA

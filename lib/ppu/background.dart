@@ -39,15 +39,15 @@ class Background {
         col -= 30;
         table_offset |= 0x800;
       }
-      int real_tile = col * 32 + line;
+      int real_tile = line * 32 + col;
       // get the high bit
       int square = col & 2 + ((line & 2) >> 1);
       int number = (col >> 2) << 3 + (line >> 2);
       int addr = 0x23C0 + table_offset + number;
       int high_bit = (_ppu.memory[addr] >> (2 * square)) << 2;
 
-      int pattern = (_ppu.memory[0x2000 + table_offset + real_tile] << 0x10) +
-          pattern_loc;
+      int pattern =
+          (_ppu.memory[0x2000 + table_offset + real_tile] << 4) + pattern_loc;
 
       // Now we can render the pixel
       for (int x = 0; x < 8; x++) {

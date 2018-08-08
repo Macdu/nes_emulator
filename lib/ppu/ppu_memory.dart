@@ -26,16 +26,23 @@ class PPUMemory {
   int status_register = 0;
 
   int operator [](int index) {
-    index %= 0x4000;
+    index &= (0x4000 - 1);
 
     // to be improved latter
     return _data[index];
   }
 
   void operator []=(int index, int value) {
-    index %= 0x4000;
+    index &= (0x4000 - 1);
 
     // to be improved latter
     _data[index] = value;
+  }
+
+  /// load a 8k bit CHR ROM at location $0000
+  void load_chr_rom(Uint8List from, int start) {
+    for (int i = 0; i < 0x2000; i++) {
+      _data[i] = from[start + i];
+    }
   }
 }

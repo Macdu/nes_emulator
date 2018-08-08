@@ -1,10 +1,11 @@
 library nes;
 
-import 'dart:html' show CanvasElement;
+import 'dart:html' show CanvasElement, window;
 import 'dart:typed_data';
 
 import 'cpu/cpu.dart';
 import 'gamepad/gamepad.dart';
+import 'ppu/ppu.dart';
 
 /// Emulates an NES to a given canvas
 class NESEmulator {
@@ -12,7 +13,11 @@ class NESEmulator {
   GamePad gamepad = new GamePad();
   bool _playing = false;
 
+  int _nb_pgr_rom;
+  int _nb_chr_rom;
+
   CPU get cpu => _cpu;
+  PPU get ppu => _cpu.ppu;
 
   NESEmulator(CanvasElement target) {
     _cpu.ppu.init(target, _cpu);
@@ -20,11 +25,12 @@ class NESEmulator {
   }
 
   /// run the emulator
-  void run() {
+  void run() async {
     _playing = true;
     while (_playing) {
-      //await window.animationFrame;
-      tick();
+      await window.animationFrame;
+      // render about one frame
+      for (int i = 0; i < 22272; i++) tick();
     }
   }
 
@@ -48,6 +54,9 @@ class NESEmulator {
       return;
     }
 
+    _nb_pgr_rom = rom[4];
+    _nb_chr_rom = rom[5];
+
     int offset = 16;
     if ((infos[6] & (1 << 2)) != 0) {
       // contains a 512-byte trainer
@@ -57,11 +66,17 @@ class NESEmulator {
 
     int pgr_lower_start = offset;
     int pgr_higher_start = offset;
-    if (rom.lengthInBytes >= 16 + (1 << 15)) {
+    offset += 1 << 14;
+    if (_nb_pgr_rom > 1) {
       pgr_higher_start += (1 << 14);
+      offset += 1 << 14;
     }
     _cpu.memory.load_PGR_lower(rom, pgr_lower_start);
     _cpu.memory.load_PGR_upper(rom, pgr_higher_start);
+
+    if (_nb_chr_rom >= 1) {
+      ppu.memory.load_chr_rom(rom, offset);
+    }
     reset();
   }
 

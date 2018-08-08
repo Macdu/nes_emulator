@@ -159,7 +159,7 @@ class Interpreter {
       // 20 - JSR
       case 0x20:
         _cpu_cycles = 6;
-        int addr = _absolute();
+        int addr = _absolute_addr();
         _state.pc++;
         _opcodes_used = 0;
         _save_pc();
