@@ -157,7 +157,7 @@ class PPU {
     }
 
     for (int x = 0; x < 256; x++) {
-      Color rendered = _background._result[_curr_scanline * 256 + x];
+      Color rendered = _background._result[_curr_scanline * 256 * 2 + x];
       if (_sprites._result[_curr_scanline * 256 + x] != _transparent &&
           _sprites._has_priority[_curr_scanline * 256 + x]) {
         // the color rendered is the one of the sprite

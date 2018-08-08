@@ -1163,10 +1163,10 @@ class Interpreter {
 
   /// return the 8-bit result of x + y and update the state flags
   int _add(int x, int y) {
-    int res = x + y;
+    int res = (x + y);
     _negative_update(res);
     _zero_update(res);
-    return res;
+    return res & 0xFF;
   }
 
   /// adc operation and update the flags
@@ -1382,7 +1382,7 @@ class Interpreter {
 
   /// return absolute x address
   /// Page boundary cross doesn't imply a new cpu cycle here
-  int _absolute_x_addr() => _absolute_(_state.x) + _state.x;
+  int _absolute_x_addr() => _absolute_addr() + _state.x;
 
   /// get an absolute value
   int _absolute() {
@@ -1400,7 +1400,7 @@ class Interpreter {
     int addr = _absolute_addr();
     int nouv = addr + delta;
     if ((addr & 0xFF00) != (nouv & 0XFF00)) _cpu_cycles++;
-    return nouv;
+    return _memory[nouv];
   }
 
   /// return a relative address
