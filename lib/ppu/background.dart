@@ -41,10 +41,10 @@ class Background {
       }
       int real_tile = line * 32 + col;
       // get the high bit
-      int square = col & 2 + ((line & 2) >> 1);
-      int number = (col >> 2) << 3 + (line >> 2);
+      int square = (col & 2) + ((line & 2) >> 1);
+      int number = (col >> 2) + ((line >> 2) << 3);
       int addr = 0x23C0 + table_offset + number;
-      int high_bit = (_ppu.memory[addr] >> (2 * square)) << 2;
+      int high_bit = ((_ppu.memory[addr] >> (2 * square)) & 3) << 2;
 
       int pattern =
           (_ppu.memory[0x2000 + table_offset + real_tile] << 4) + pattern_loc;

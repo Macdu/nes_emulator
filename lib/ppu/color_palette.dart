@@ -5,8 +5,8 @@ class Color {
   final int r, v, b;
 
   const Color(int hex)
-      : r = (hex >> 0x10000) & 0xFF,
-        v = (hex >> 0x100) & 0xFF,
+      : r = (hex >> 16) & 0xFF,
+        v = (hex >> 8) & 0xFF,
         b = hex & 0xFF;
 }
 
