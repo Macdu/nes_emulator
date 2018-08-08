@@ -352,7 +352,8 @@ class Interpreter {
       // 4C - JMP - Absolute
       case 0x4C:
         _cpu_cycles = 3;
-        _state.pc = _absolute();
+        _state.pc = _absolute_addr();
+        _opcodes_used = 0;
         break;
 
       // 4D - EOR - Absolute
@@ -481,8 +482,7 @@ class Interpreter {
       // 6C - JMP - Indirect
       case 0x6C:
         _cpu_cycles = 5;
-        int addr = _immediate();
-        _state.pc = _memory[addr] + (_memory[addr + 1] << 8);
+        _state.pc = _absolute_addr();
         _opcodes_used = 0;
         break;
 
@@ -1129,7 +1129,7 @@ class Interpreter {
       // FF - Future Expansion
 
       default:
-        throw "Opcode $cond Not Implemented";
+        throw "Opcode ${cond.toRadixString(16)} Not Implemented";
     }
     _state.pc += _opcodes_used;
     _cycles_left += _cpu_cycles;
@@ -1224,7 +1224,7 @@ class Interpreter {
   /// left rotate and update flags
   int _left_rotate(int x) {
     x <<= 1;
-    x += _state.carry_val;
+    x |= _state.carry_val;
     _zero_update(x);
     _negative_update(x);
     _carry_update(x);
@@ -1233,7 +1233,7 @@ class Interpreter {
 
   /// right rotate and update the flags
   int _right_rotate(int x) {
-    x &= (_state.carry_val << 8);
+    x |= (_state.carry_val << 8);
     _state.carry = (x & 1) == 1;
     x >>= 1;
     _zero_update(x);
@@ -1252,7 +1252,10 @@ class Interpreter {
   /// compare x and y and update the flags
   void _compare(int x, int y) {
     int res = x - y;
-    _state.carry = res >= 0;
+    _state.carry = (x >= y);
+    if (res <= 0) {
+      res = -((-res) ^ (0x100 - 1)) - 1;
+    }
     _nz_update(res & 0xFF);
   }
 

@@ -25,6 +25,9 @@ class CPUMemory {
   /// current joypad button id to be read
   int _curr_button_id = 0;
 
+  /// state of joypad reset
+  bool _joypad_reset = false;
+
   /// current write state of PPUSCROLL (0x2005)
   bool _is_scroll_x = true;
 
@@ -103,7 +106,8 @@ class CPUMemory {
         // joypad 1 state
         bool res = _cpu.gamepad.is_pressed(_curr_button_id);
         _curr_button_id++;
-        _curr_button_id &= 7;
+        _curr_button_id %= 25;
+        _joypad_reset = false;
         return res ? 1 : 0;
 
       case 0x4017:
@@ -175,7 +179,13 @@ class CPUMemory {
         cpu._interpreter._cpu_cycles += 512;
         break;
       case 0x4016:
-        // TODO: implement properly
+        if ((value & 1) == 1) {
+          _joypad_reset = true;
+        } else {
+          if (_joypad_reset) _curr_button_id = 0;
+
+          _joypad_reset = false;
+        }
         break;
       case 0x4017:
         break;

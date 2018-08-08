@@ -87,7 +87,7 @@ class GamePad {
       case 7:
         return right_pressed;
       default:
-        throw "Attempt to read $id state of the controller";
+        return false;
     }
   }
 }
