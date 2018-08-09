@@ -47,20 +47,26 @@ class CPU {
         if (!state.interrupt_disable) {
           // if the interrupt disable flag is not set, set the state pc
           // new location is at $FFFE - $FFFF
+          _interpreter._save_state();
+          state.interrupt_disable = true;
           state.pc = _interpreter._read_16bit_addr(0xFFFE);
         }
         break;
       case InterruptType.NMI:
         if ((_ppu.memory.control_register_1 & 0x80) != 0) {
           // if bit 7 of PPU control register 1 is not clear, causes interrupt
+
+          _interpreter._save_state();
+          state.interrupt_disable = true;
+
           state.pc = _interpreter._read_16bit_addr(0xFFFA);
         }
         break;
       case InterruptType.RESET:
-        state.pc = _interpreter._read_16bit_addr(0xFFFC);
+        _interpreter._save_state();
         state.interrupt_disable = true;
-        if (state.sp < 3) state.sp += 0x100;
-        state.sp -= 3;
+
+        state.pc = _interpreter._read_16bit_addr(0xFFFC);
         break;
     }
   }

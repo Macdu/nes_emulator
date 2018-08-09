@@ -303,6 +303,7 @@ class Interpreter {
       // 40 - RTI
       case 0x40:
         _cpu_cycles = 6;
+        _opcodes_used = 0;
         _restore_state();
         break;
 
