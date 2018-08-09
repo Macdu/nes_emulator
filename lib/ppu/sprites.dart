@@ -45,7 +45,7 @@ class Sprites {
       int pattern_index = _ppu.memory._spr_ram[addr + 1];
       int attributes = _ppu.memory._spr_ram[addr + 2];
       int high_palette = (attributes & 3) << 2;
-      bool priority = (attributes & (1 << 5)) != 0;
+      bool priority = (attributes & (1 << 5)) == 0;
       bool swap_verti = (attributes & (1 << 6)) != 0;
       bool swap_hori = (attributes & (1 << 7)) != 0;
 

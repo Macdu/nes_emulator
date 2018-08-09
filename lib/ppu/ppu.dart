@@ -2,6 +2,7 @@ library nes.ppu;
 
 import 'dart:html' show CanvasElement, CanvasRenderingContext2D, ImageData;
 import 'dart:typed_data';
+import 'dart:developer';
 
 import '../cpu/cpu.dart';
 
@@ -158,15 +159,17 @@ class PPU {
 
     for (int x = 0; x < 256; x++) {
       Color rendered = _background._result[_curr_scanline * 256 * 2 + x];
-      if (_sprites._result[_curr_scanline * 256 + x] != _transparent &&
-          _sprites._has_priority[_curr_scanline * 256 + x]) {
-        // the color rendered is the one of the sprite
 
-        // check sprite 0 collision
-        if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x] &&
-            rendered != _transparent) {
-          sprite0_hit_flag = true;
-        }
+      // check sprite 0 collision
+      if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x] &&
+          rendered != _transparent) {
+        sprite0_hit_flag = true;
+      }
+
+      if (_sprites._result[_curr_scanline * 256 + x] != _transparent &&
+          (rendered == _transparent ||
+              _sprites._has_priority[_curr_scanline * 256 + x])) {
+        // the color rendered is the one of the sprite
         rendered = _sprites._result[_curr_scanline * 256 + x];
       }
       int screen_pos = (_curr_scanline * 256 + x) * 4;
