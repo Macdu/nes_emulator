@@ -605,6 +605,7 @@ class Interpreter {
       case 0x8A:
         _cpu_cycles = 2;
         _state.a = _state.x;
+        _nz_update(_state.a);
         break;
 
       // 8B - Future Expansion
