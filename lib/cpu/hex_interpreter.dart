@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    if (_state.pc == 0xCBD8) debugger();
+    //if (_state.pc == 0xCE68) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -164,7 +164,7 @@ class Interpreter {
       case 0x20:
         _cpu_cycles = 6;
         int addr = _absolute_addr();
-        _state.pc++;
+        _state.pc += 2;
         _opcodes_used = 0;
         _save_pc();
         _state.pc = addr;
@@ -438,7 +438,6 @@ class Interpreter {
       case 0x60:
         _cpu_cycles = 6;
         _restore_pc();
-        _state.pc++;
         break;
 
       // 61 - ADC - (Indirect,X)
