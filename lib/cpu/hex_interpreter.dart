@@ -1253,8 +1253,8 @@ class Interpreter {
   void _compare(int x, int y) {
     int res = x - y;
     _state.carry = (x >= y);
-    if (res <= 0) {
-      res = -((-res) ^ (0x100 - 1)) - 1;
+    if (res < 0) {
+      res = ((-res) ^ (0x100 - 1)) + 1;
     }
     _nz_update(res & 0xFF);
   }
