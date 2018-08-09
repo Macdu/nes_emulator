@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (_state.pc == 0xA90C) debugger();
+    //if (cond == 0xD9) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -393,7 +393,7 @@ class Interpreter {
       // 55 - EOR - Zero Page,X
       case 0x55:
         _cpu_cycles = 4;
-        _state.a = _xor(_state.a, _zero_page());
+        _state.a = _xor(_state.a, _zero_page_x());
         break;
 
       // 56 - LSR - Zero Page,X
@@ -861,7 +861,7 @@ class Interpreter {
       // BE - LDX - Absolute,Y
       case 0xBE:
         _cpu_cycles = 4;
-        _state.x = _absolute_x();
+        _state.x = _absolute_y();
         _nz_update(_state.x);
         break;
 
@@ -989,7 +989,7 @@ class Interpreter {
       // DD - CMP - Absolute,X
       case 0xDD:
         _cpu_cycles = 4;
-        _compare(_state.a, _absolute_y());
+        _compare(_state.a, _absolute_x());
         break;
 
       // DE - DEC - Absolute,X
