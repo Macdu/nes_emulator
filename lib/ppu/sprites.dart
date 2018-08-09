@@ -30,7 +30,7 @@ class Sprites {
   /// the sprites are rendered each frame
   void _render() {
     List<Color> palette = _read_palette();
-    _result.fillRange(0, _result.length, palette[0]);
+    _result.fillRange(0, _result.length, _transparent);
     _nb_sprites.fillRange(0, _nb_sprites.length, 0);
     _has_priority.fillRange(0, _has_priority.length, false);
     _sprite0_opaque_pixels.fillRange(0, _sprite0_opaque_pixels.length, false);

@@ -33,11 +33,11 @@ class Background {
       int old_line = line;
       if (line >= 30) {
         line -= 30;
-        table_offset |= 0x400;
+        table_offset |= 0x800;
       }
       if (col >= 32) {
         col -= 32;
-        table_offset |= 0x800;
+        table_offset |= 0x400;
       }
       int real_tile = line * 32 + col;
       // get the high bit
@@ -49,7 +49,7 @@ class Background {
       int pattern =
           (_ppu.memory[0x2000 + table_offset + real_tile] << 4) + pattern_loc;
 
-      // Now we can render the pixel
+      // Now we can render the pixels
       for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
           int color = high_bit |
