@@ -2,6 +2,9 @@ library nes.cpu;
 
 import 'dart:typed_data';
 
+// TODO: remove after debugging is finished
+import 'dart:developer';
+
 import '../ppu/ppu.dart';
 import '../gamepad/gamepad.dart';
 

@@ -119,6 +119,7 @@ class CPUMemory {
         return 0;
 
       default:
+        debugger();
         throw "Attempt to access memory location 0x${index.toRadixString(16)}";
     }
   }
@@ -199,6 +200,7 @@ class CPUMemory {
       case 0x4017:
         break;
       default:
+        debugger();
         throw "Memory write at 0x${index.toRadixString(16)} not implemented";
     }
   }

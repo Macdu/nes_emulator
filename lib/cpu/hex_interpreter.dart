@@ -20,6 +20,7 @@ class Interpreter {
 
   /// Create the interpreter with a state and a memory
   Interpreter(this._state, this._memory);
+  List<String> f = [];
 
   /// evaluate the next instruction
   void _eval_next_instruction() {
@@ -27,6 +28,8 @@ class Interpreter {
     _cpu_cycles = 0;
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
+    List g = f;
+    g.add(_state.pc.toRadixString(16));
     switch (cond) {
 
       // 00 - BRK
@@ -1130,6 +1133,7 @@ class Interpreter {
       // FF - Future Expansion
 
       default:
+        debugger();
         throw "Opcode ${cond.toRadixString(16)} Not Implemented";
     }
     _state.pc += _opcodes_used;
