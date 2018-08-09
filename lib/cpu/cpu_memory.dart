@@ -64,6 +64,9 @@ class CPUMemory {
     // If access is done in the PGR zone
     if (index >= 0x8000) {
       return _data[index];
+    } else if (index >= 0x6000) {
+      // SRAM access, may disable it if no sram inserted
+      return _data[index];
     }
 
     // RAM access
@@ -122,6 +125,12 @@ class CPUMemory {
 
   void operator []=(int index, int value) {
     if (index < 0x2000) {
+      _data[index] = value;
+      return;
+    }
+
+    if (index >= 0x6000 && index < 0x8000) {
+      // sram, may disable it if no sram inserted
       _data[index] = value;
       return;
     }
