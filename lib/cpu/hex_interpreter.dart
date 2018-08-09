@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (_state.pc == 0xCE68) debugger();
+    //if (cond == 0xE1) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -1308,7 +1308,7 @@ class Interpreter {
   int _indirect_x() {
     _opcodes_used++;
     int addr = (_memory[_state.pc + 1] + _state.x) & 0xFF;
-    int loc = _memory[addr] + (_memory[(addr + 1) & 0xFF] >> 8);
+    int loc = _memory[addr] | (_memory[(addr + 1) & 0xFF] << 8);
     return _memory[loc];
   }
 
@@ -1316,7 +1316,7 @@ class Interpreter {
   int _indirect_y() {
     _opcodes_used++;
     int addr = _memory[_state.pc + 1];
-    addr = _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8);
+    addr = _memory[addr] | (_memory[(addr + 1) & 0xFF] << 8);
     int loc = addr + _state.y;
     if ((addr & 0xFF00) != (loc & 0xFF00)) _cpu_cycles++;
     return _memory[loc];
@@ -1326,7 +1326,7 @@ class Interpreter {
   int _indirect_x_addr() {
     _opcodes_used++;
     int addr = (_memory[_state.pc + 1] + _state.x) & 0xFF;
-    return _memory[addr] + (_memory[(addr + 1) & 0xFF] >> 8);
+    return _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8);
   }
 
   /// get an indirect y address
