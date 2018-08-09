@@ -46,8 +46,8 @@ class Sprites {
       int attributes = _ppu.memory._spr_ram[addr + 2];
       int high_palette = (attributes & 3) << 2;
       bool priority = (attributes & (1 << 5)) == 0;
-      bool swap_verti = (attributes & (1 << 6)) != 0;
-      bool swap_hori = (attributes & (1 << 7)) != 0;
+      bool swap_hori = (attributes & (1 << 6)) != 0;
+      bool swap_verti = (attributes & (1 << 7)) != 0;
 
       int pattern_start = is8x16
           ? 0x1000 * (pattern_index & 1) | (pattern_index * 0x10)
