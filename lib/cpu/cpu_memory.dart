@@ -60,7 +60,19 @@ class CPUMemory {
     }
   }
 
+  /// get address through memory mirroring
+  int _get_addr(int index) {
+    if (index >= 0x2008 && index < 0x4000) {
+      index = 0x2000 | (index & 0x7);
+    } else if (index >= 0x0800 && index < 0x2000) {
+      index &= 0x07FF;
+    }
+    return index;
+  }
+
   int operator [](int index) {
+    index = _get_addr(index);
+
     // If access is done in the PGR zone
     if (index >= 0x8000) {
       return _data[index];
@@ -125,6 +137,7 @@ class CPUMemory {
   }
 
   void operator []=(int index, int value) {
+    index = _get_addr(index);
     if (index < 0x2000) {
       _data[index] = value;
       return;

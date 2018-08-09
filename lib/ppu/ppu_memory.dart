@@ -25,15 +25,31 @@ class PPUMemory {
   /// PPU status register
   int status_register = 0;
 
-  int operator [](int index) {
+  // get real index through memory mirroring
+  int _get_addr(int index) {
     index &= (0x4000 - 1);
+
+    if (index >= 0x3000 && index < 0x3F00) {
+      index -= 0x1000;
+    } else if (index >= 0x3F00 && index < 0x4000) {
+      index = 0x3F00 | (index & 0x1F);
+      if ((index & 3) == 0) {
+        index = 0x3F00;
+      }
+    }
+
+    return index;
+  }
+
+  int operator [](int index) {
+    index = _get_addr(index);
 
     // to be improved latter
     return _data[index];
   }
 
   void operator []=(int index, int value) {
-    index &= (0x4000 - 1);
+    index = _get_addr(index);
 
     // to be improved latter
     _data[index] = value;

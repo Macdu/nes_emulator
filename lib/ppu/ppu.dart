@@ -110,7 +110,7 @@ class PPU {
     if (_cycles_left <= 0) {
       // start a new scanline
       _curr_scanline++;
-      _curr_scanline %= 262;
+      if (_curr_scanline == 262) _curr_scanline = 0;
 
       _cycles_left = 341;
 
