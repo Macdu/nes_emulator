@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    if (_state.pc == 0xC7E7) debugger();
+    if (_state.pc == 0xCBD8) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -1163,24 +1163,19 @@ class Interpreter {
     _state.carry = (nb > 0xFF);
   }
 
-  /// overflow flag update
-  void _overflow_update(int x, int y, int res) {
-    _state.overflow = (((x ^ y) & 0x80) == 0) && (((x & res) & 0x80) != 0);
-  }
-
   /// return the 8-bit result of x + y and update the state flags
   int _add(int x, int y) {
     int res = (x + y);
-    _negative_update(res);
-    _zero_update(res);
+    _nz_update(res);
     return res & 0xFF;
   }
 
   /// adc operation and update the flags
   int _adc(int x, int y) {
-    int res = _add(x, y + _state.carry_val);
+    int res = x + y + _state.carry_val;
+    _nz_update(res);
     _carry_update(res);
-    _overflow_update(x, y, res);
+    _state.overflow = (((x ^ y) & 0x80) == 0) && (((x ^ res) & 0x80) != 0);
     return res;
   }
 
@@ -1188,9 +1183,12 @@ class Interpreter {
   int _sbc(int x, int y) {
     int res = x - y - (1 - _state.carry_val);
     _state.carry = res >= 0;
+    if (res < 0) {
+      res = ((-res) ^ (0x100 - 1)) + 1;
+    }
     res &= 0xFF;
     _nz_update(res);
-    _overflow_update(x, y, res);
+    _state.overflow = (((x ^ y) & 0x80) != 0) && (((x ^ res) & 0x80) != 0);
     return res;
   }
 
