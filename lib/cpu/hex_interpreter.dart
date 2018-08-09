@@ -486,7 +486,7 @@ class Interpreter {
       // 6C - JMP - Indirect
       case 0x6C:
         _cpu_cycles = 5;
-        _state.pc = _absolute_addr();
+        _state.pc = _indirect();
         _opcodes_used = 0;
         break;
 
@@ -1334,6 +1334,13 @@ class Interpreter {
     _opcodes_used++;
     int addr = _memory[_state.pc + 1];
     return _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y;
+  }
+
+  /// get an indirect address
+  int _indirect() {
+    _opcodes_used += 2;
+    int addr = _memory[_state.pc + 1] | (_memory[_state.pc + 2] << 8);
+    return _memory[addr] | (_memory[addr + 1] << 8);
   }
 
   /// get a zero_page value
