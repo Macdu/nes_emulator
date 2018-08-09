@@ -37,7 +37,7 @@ class State {
 
   /// Break Command (B) - The break command flag is used to indicate that a BRK (Break)
   /// instruction has been executed, causing an IRQ.
-  bool break_command = false;
+  // bool break_command = false;
 
   /// Overflow Flag (V) - The overflow flag is set if an invalid two’s complement result was
   /// obtained by the previous instruction.
@@ -49,28 +49,27 @@ class State {
   bool negative = false;
 
   /// load from the stack : NV BDIZC
-  void load_processor_status(int p) {
+  void load_processor_flags(int p) {
     carry = (p & 1) != 0;
     zero = (p & 0x02) != 0;
     interrupt_disable = (p & 0x04) != 0;
     decimal_mode = (p & 0x08) != 0;
-    break_command = (p & 0x10) != 0;
 
-    negative = (p & 0x40) != 0;
-    overflow = (p & 0x80) != 0;
+    overflow = (p & 0x40) != 0;
+    negative = (p & 0x80) != 0;
   }
 
   /// export to the stack : NV BDIZC
-  int export_processor_status() {
-    int p = 0;
+  int export_processor_flags(bool break_state) {
+    int p = 0x20;
     if (carry) p |= 0x01;
     if (zero) p |= 0x02;
     if (interrupt_disable) p |= 0x04;
     if (decimal_mode) p |= 0x08;
-    if (break_command) p |= 0x10;
+    if (break_state) p |= 0x10;
 
-    if (negative) p |= 0x40;
-    if (overflow) p |= 0x80;
+    if (overflow) p |= 0x40;
+    if (negative) p |= 0x80;
     return p;
   }
 }

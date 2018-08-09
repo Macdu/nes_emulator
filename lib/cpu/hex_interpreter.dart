@@ -29,7 +29,9 @@ class Interpreter {
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
     List g = f;
-    g.add(_state.pc.toRadixString(16));
+    //g.add(_state.pc.toRadixString(16));
+    String a = _state.pc.toRadixString(16);
+    if (_state.pc == 0xC7E7) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -37,9 +39,7 @@ class Interpreter {
         _cpu_cycles += 7;
         _state.pc += 2;
         _opcodes_used = 0;
-        _state.break_command = true;
-        _save_state();
-        _state.interrupt_disable = true;
+        _save_state(true);
         _state.pc = _memory.irq_address;
         break;
 
@@ -69,7 +69,8 @@ class Interpreter {
       // 08 - PHP
       case 0x08:
         _cpu_cycles = 3;
-        _stack_push(_state.export_processor_status());
+        // PHP always includes the break flag
+        _stack_push(_state.export_processor_flags(true));
         break;
 
       // 09 - ORA - Immediate
@@ -204,7 +205,7 @@ class Interpreter {
       // 28 - PLP
       case 0x28:
         _cpu_cycles = 4;
-        _state.load_processor_status(_stack_pull());
+        _state.load_processor_flags(_stack_pull());
         break;
 
       // 29 - AND - Immediate
@@ -467,6 +468,7 @@ class Interpreter {
       case 0x68:
         _cpu_cycles = 4;
         _state.a = _stack_pull();
+        _nz_update(_state.a);
         break;
 
       // 69 - ADC - Immediate
@@ -1288,9 +1290,9 @@ class Interpreter {
   }
 
   /// save the current state in the stack
-  void _save_state() {
+  void _save_state(bool break_state) {
     _save_pc();
-    _stack_push(_state.export_processor_status());
+    _stack_push(_state.export_processor_flags(break_state));
   }
 
   // get the PC from the stack
@@ -1300,7 +1302,7 @@ class Interpreter {
 
   /// restore the state from the stack
   void _restore_state() {
-    _state.load_processor_status(_stack_pull());
+    _state.load_processor_flags(_stack_pull());
     _restore_pc();
   }
 

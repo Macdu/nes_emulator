@@ -39,7 +39,7 @@ class CPU {
   GamePad gamepad;
 
   CPU() {
-    state.load_processor_status(0);
+    state.load_processor_flags(0);
     _interpreter = new Interpreter(state, memory);
     memory._cpu = this;
   }
@@ -50,24 +50,21 @@ class CPU {
         if (!state.interrupt_disable) {
           // if the interrupt disable flag is not set, set the state pc
           // new location is at $FFFE - $FFFF
-          _interpreter._save_state();
-          state.interrupt_disable = true;
+          _interpreter._save_state(false);
+
           state.pc = _interpreter._read_16bit_addr(0xFFFE);
         }
         break;
       case InterruptType.NMI:
         if ((_ppu.memory.control_register_1 & 0x80) != 0) {
           // if bit 7 of PPU control register 1 is not clear, causes interrupt
-
-          _interpreter._save_state();
-          state.interrupt_disable = true;
+          _interpreter._save_state(false);
 
           state.pc = _interpreter._read_16bit_addr(0xFFFA);
         }
         break;
       case InterruptType.RESET:
-        _interpreter._save_state();
-        state.interrupt_disable = true;
+        _interpreter._save_state(true);
 
         state.pc = _interpreter._read_16bit_addr(0xFFFC);
         break;
