@@ -58,6 +58,9 @@ class CPU {
         break;
       case InterruptType.RESET:
         state.pc = _interpreter._read_16bit_addr(0xFFFC);
+        state.interrupt_disable = true;
+        if (state.sp < 3) state.sp += 0x100;
+        state.sp -= 3;
         break;
     }
   }

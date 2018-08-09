@@ -6,7 +6,7 @@ class State {
   int pc = 0;
 
   /// 8 bit stack pointer
-  int sp = 0;
+  int sp = 0xFD;
 
   /// 8 bit accumulator
   int a = 0;
@@ -29,7 +29,7 @@ class State {
 
   /// Interrupt Disable (I) - The interrupt disable flag can be used to prevent the system
   /// responding to IRQs
-  bool interrupt_disable = false;
+  bool interrupt_disable = true;
 
   /// The decimal mode flag is used to switch the 6502 into BCD mode.
   /// Not used by the NES, have no effect
