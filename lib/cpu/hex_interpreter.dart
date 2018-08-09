@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (cond == 0x2E) debugger();
+    //if (_state.pc == 0xA90C) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -1317,7 +1317,7 @@ class Interpreter {
     _opcodes_used++;
     int addr = _memory[_state.pc + 1];
     addr = _memory[addr] | (_memory[(addr + 1) & 0xFF] << 8);
-    int loc = addr + _state.y;
+    int loc = (addr + _state.y) & 0xFFFF;
     if ((addr & 0xFF00) != (loc & 0xFF00)) _cpu_cycles++;
     return _memory[loc];
   }
@@ -1333,14 +1333,16 @@ class Interpreter {
   int _indirect_y_addr() {
     _opcodes_used++;
     int addr = _memory[_state.pc + 1];
-    return _memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y;
+    return (_memory[addr] + (_memory[(addr + 1) & 0xFF] << 8) + _state.y) &
+        0xFFFF;
   }
 
   /// get an indirect address
   int _indirect() {
     _opcodes_used += 2;
     int addr = _memory[_state.pc + 1] | (_memory[_state.pc + 2] << 8);
-    return _memory[addr] | (_memory[addr + 1] << 8);
+    return _memory[addr] |
+        (_memory[(addr & 0xFF00) | ((addr + 1) & 0x00FF)] << 8);
   }
 
   /// get a zero_page value
@@ -1413,7 +1415,7 @@ class Interpreter {
   /// return absolute value + delta
   int _absolute_(int delta) {
     int addr = _absolute_addr();
-    int nouv = addr + delta;
+    int nouv = (addr + delta) & 0xFFFF;
     if ((addr & 0xFF00) != (nouv & 0XFF00)) _cpu_cycles++;
     return _memory[nouv];
   }
