@@ -958,7 +958,7 @@ class Interpreter {
       // D2 - D4 - Future Expansion
 
       // D5 - CMP - Zero Page,X
-      case 0xD0:
+      case 0xD5:
         _cpu_cycles = 4;
         _compare(_state.a, _zero_page_x());
         break;
