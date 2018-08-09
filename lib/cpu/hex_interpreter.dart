@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (cond == 0xE1) debugger();
+    //if (cond == 0x2E) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -241,7 +241,7 @@ class Interpreter {
       case 0x2E:
         _cpu_cycles = 6;
         int addr = _absolute_addr();
-        _memory[addr] = _left_rotate(addr);
+        _memory[addr] = _left_rotate(_memory[addr]);
         break;
 
       // 2F - Future Expansion
@@ -1388,7 +1388,7 @@ class Interpreter {
   /// get an absolute address
   int _absolute_addr() {
     _opcodes_used += 2;
-    return _memory[_state.pc + 1] + (_memory[_state.pc + 2] << 8);
+    return _memory[_state.pc + 1] | (_memory[_state.pc + 2] << 8);
   }
 
   /// return absolute y address
