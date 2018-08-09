@@ -115,7 +115,7 @@ class CPUMemory {
 
       case 0x4017:
         // joypad 2 register
-        print("Attempt to access player 2 gamepad");
+        // print("Attempt to access player 2 gamepad");
         return 0;
 
       default:

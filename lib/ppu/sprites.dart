@@ -53,16 +53,16 @@ class Sprites {
           ? 0x1000 * (pattern_index & 1) | (pattern_index * 0x10)
           : pattern_address | (pattern_index * 0x10);
 
-      for (int x = 0; x < 8; x++) {
-        if (start_x + x >= 256) break;
-        for (int y = 0; y < (is8x16 ? 16 : 8); y++) {
-          if (start_y + y >= 240) break;
+      for (int x = start_x; x < start_x + 8; x++) {
+        if (x >= 256) break;
+        for (int y = start_y; y < start_y + (is8x16 ? 16 : 8); y++) {
+          if (y >= 240) break;
 
-          _nb_sprites[start_y + y]++;
+          _nb_sprites[y]++;
 
-          if (_nb_sprites[start_y + y] >= 8) {
+          if (_nb_sprites[y] > 8) {
             // sprite overflow, will be set when rendering the scanline
-            break;
+            continue;
           }
 
           // sprite priority
@@ -70,8 +70,9 @@ class Sprites {
             continue;
           }
 
-          int x_pattern_pos = swap_hori ? (7 - x) : x;
-          int y_pattern_pos = swap_verti ? ((is8x16 ? 15 : 7) - y) : y;
+          int x_pattern_pos = swap_hori ? (7 - (x - start_x)) : (x - start_x);
+          int y_pattern_pos =
+              swap_verti ? ((is8x16 ? 15 : 7) - (y - start_y)) : (y - start_y);
 
           if (is8x16 && y_pattern_pos >= 8) {
             y_pattern_pos += 8;

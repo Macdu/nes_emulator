@@ -163,7 +163,8 @@ class PPU {
         // the color rendered is the one of the sprite
 
         // check sprite 0 collision
-        if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x]) {
+        if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x] &&
+            rendered != _transparent) {
           sprite0_hit_flag = true;
         }
         rendered = _sprites._result[_curr_scanline * 256 + x];
