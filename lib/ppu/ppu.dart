@@ -49,11 +49,11 @@ class PPU {
 
   /// return if sprites should be displayed
   /// located in control register 2 bit 4
-  bool get displaySprite => ((memory.control_register_2 >> 4) & 1) == 1;
+  bool get display_sprite => ((memory.control_register_2 >> 4) & 1) == 1;
 
   /// return if the background should be displayed
   /// located in control register 2 bit 3
-  bool get displayBackground => ((memory.control_register_2 >> 3) & 1) == 1;
+  bool get display_background => ((memory.control_register_2 >> 3) & 1) == 1;
 
   /// See [PPUMemory.x_scroll]
   int get x_scroll => memory.x_scroll;
@@ -64,12 +64,6 @@ class PPU {
   /// if the sprites are 8x8 or 8x16
   /// located in control register 1 bit 5
   bool get has8x16Sprites => ((memory.control_register_1 >> 5) & 1) == 1;
-
-  /// located in control register 2 bit 3
-  bool get background_enabled => ((memory.control_register_2 >> 3) & 1) == 1;
-
-  /// located in control register 2 bit 2
-  bool get sprites_enabled => ((memory.control_register_2 >> 2) & 1) == 1;
 
   /// set the sprite 0 hit flag
   /// located in bit 6 status register
@@ -117,8 +111,21 @@ class PPU {
 
       if (_curr_scanline == 0) {
         // start a new frame
-        _background._render();
-        _sprites._render();
+        if (display_background) {
+          _background._render();
+        } else {
+          _background._read_palette();
+          _background._result
+              .fillRange(0, _background._result.length, _transparent);
+        }
+        if (display_sprite) {
+          _sprites._render();
+        } else {
+          _background._read_palette();
+          _sprites._result.fillRange(0, _sprites._result.length, _transparent);
+          _sprites._sprite0_opaque_pixels
+              .fillRange(0, _sprites._sprite0_opaque_pixels.length, false);
+        }
       }
 
       if (_curr_scanline >= 240) {
