@@ -56,10 +56,12 @@ class PPU {
   bool get display_background => ((memory.mask_register >> 3) & 1) == 1;
 
   /// See [PPUMemory.x_scroll]
-  int get x_scroll => memory.x_scroll;
+  /// Add also scrolling based on control register bit 0
+  int get x_delta => memory.x_scroll + (memory.control_register & 1) * 256;
 
   /// See [PPUMemory.y_scroll]
-  int get y_scroll => memory.y_scroll;
+  /// Add also scrolling based on control register bit 1
+  int get y_delta => memory.y_scroll + (memory.control_register & 2) * 120;
 
   /// if the sprites are 8x8 or 8x16
   /// located in control register 1 bit 5
@@ -163,9 +165,11 @@ class PPU {
     if (_sprites._nb_sprites[_curr_scanline] > 8) {
       overflow_flag = true;
     }
+    int curr_y = (_curr_scanline + y_delta) % 480;
 
     for (int x = 0; x < 256; x++) {
-      Color rendered = _background._result[_curr_scanline * 256 * 2 + x];
+      int curr_x = (x + x_delta) % (256 * 2);
+      Color rendered = _background._result[curr_y * 256 * 2 + curr_x];
 
       // check sprite 0 collision
       if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x] &&
