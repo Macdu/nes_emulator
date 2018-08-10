@@ -30,7 +30,7 @@ class NESEmulator {
     while (_playing) {
       await window.animationFrame;
       // render about one frame
-      for (int i = 0; i < 22272; i++) tick();
+      for (int i = 0; i < 29781; i++) tick();
     }
   }
 
