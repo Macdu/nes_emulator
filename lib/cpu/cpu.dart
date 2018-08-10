@@ -57,7 +57,7 @@ class CPU {
         }
         break;
       case InterruptType.NMI:
-        if ((_ppu.memory.control_register_1 & 0x80) != 0) {
+        if ((_ppu.memory.control_register & 0x80) != 0) {
           // if bit 7 of PPU control register 1 is not clear, causes interrupt
           _interpreter._save_state(false);
 

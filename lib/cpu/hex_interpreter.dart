@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (_state.pc == 0xE101) debugger();
+    //if (_state.pc == 0xE31B) debugger();
     switch (cond) {
 
       // 00 - BRK

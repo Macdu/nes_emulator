@@ -9,12 +9,15 @@ class Background {
   /// return the palette for the background
   List<Color> _read_palette() {
     List<Color> res = new List<Color>(16);
+    _transparent = nes_palette[_ppu.memory[0x3F00]];
     for (int i = 0; i < 16; i++) {
-      res[i] = nes_palette[
-          _ppu.memory[0x3F00 + i] & 0x3F]; // image palette starts at 0x3F00
+      if ((i & 3) == 0) {
+        res[i] = _transparent;
+      } else {
+        res[i] = nes_palette[
+            _ppu.memory[0x3F00 + i] & 0x3F]; // image palette starts at 0x3F10
+      }
     }
-    // update the transparent color
-    _transparent = res[0];
     return res;
   }
 

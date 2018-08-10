@@ -40,20 +40,20 @@ class PPU {
   /// return the pattern table the background is stored in
   /// 0 : $0000; 1 : $1000
   /// located in control register 1 bit 4
-  int get pattern_background_location => (memory.control_register_1 >> 4) & 1;
+  int get pattern_background_location => (memory.control_register >> 4) & 1;
 
   /// return the pattern table the sprites are stored in
   /// 0 : $0000; 1 : $1000
   /// located in control register 1 bit 3
-  int get pattern_sprites_location => (memory.control_register_1 >> 3) & 1;
+  int get pattern_sprites_location => (memory.control_register >> 3) & 1;
 
   /// return if sprites should be displayed
   /// located in control register 2 bit 4
-  bool get display_sprite => ((memory.control_register_2 >> 4) & 1) == 1;
+  bool get display_sprite => ((memory.mask_register >> 4) & 1) == 1;
 
   /// return if the background should be displayed
   /// located in control register 2 bit 3
-  bool get display_background => ((memory.control_register_2 >> 3) & 1) == 1;
+  bool get display_background => ((memory.mask_register >> 3) & 1) == 1;
 
   /// See [PPUMemory.x_scroll]
   int get x_scroll => memory.x_scroll;
@@ -63,7 +63,7 @@ class PPU {
 
   /// if the sprites are 8x8 or 8x16
   /// located in control register 1 bit 5
-  bool get has8x16Sprites => ((memory.control_register_1 >> 5) & 1) == 1;
+  bool get has8x16Sprites => ((memory.control_register >> 5) & 1) == 1;
 
   /// set the sprite 0 hit flag
   /// located in bit 6 status register
@@ -114,14 +114,14 @@ class PPU {
         if (display_background) {
           _background._render();
         } else {
-          _background._read_palette();
+          _transparent = nes_palette[memory[0x3F00]];
           _background._result
               .fillRange(0, _background._result.length, _transparent);
         }
         if (display_sprite) {
           _sprites._render();
         } else {
-          _background._read_palette();
+          _transparent = nes_palette[memory[0x3F00]];
           _sprites._result.fillRange(0, _sprites._result.length, _transparent);
           _sprites._sprite0_opaque_pixels
               .fillRange(0, _sprites._sprite0_opaque_pixels.length, false);

@@ -33,7 +33,7 @@ class CPUMemory {
 
   /// get the increase of [_ppu_memory_addr] after each read/write
   int get _ppu_addr_increase =>
-      ((ppu_memory.control_register_1 >> 2) & 1) == 1 ? 32 : 1;
+      ((ppu_memory.control_register >> 2) & 1) == 1 ? 32 : 1;
 
   /// load a 16-bit upper part of the PGR
   /// located at $C000-$CFFF
@@ -93,10 +93,10 @@ class CPUMemory {
 
     switch (index) {
       case 0x2000:
-        return ppu_memory.control_register_1;
+        return ppu_memory.control_register;
 
       case 0x2001:
-        return ppu_memory.control_register_2;
+        return ppu_memory.mask_register;
 
       case 0x2002:
         int res = ppu_memory.status_register;
@@ -156,10 +156,10 @@ class CPUMemory {
 
     switch (index) {
       case 0x2000:
-        ppu_memory.control_register_1 = value;
+        ppu_memory.control_register = value;
         break;
       case 0x2001:
-        ppu_memory.control_register_2 = value;
+        ppu_memory.mask_register = value;
         break;
       case 0x2003:
         _sprite_memory_addr = value;

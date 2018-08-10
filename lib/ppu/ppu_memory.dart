@@ -12,10 +12,10 @@ class PPUMemory {
   Uint8List get spr_ram => _spr_ram;
 
   /// 8-bit PPU control register address 1
-  int control_register_1 = 0;
+  int control_register = 0;
 
   /// 8-bit PPU control register address 2
-  int control_register_2 = 0;
+  int mask_register = 0;
 
   /// vram address register 1 first value
   int x_scroll = 0;
@@ -34,7 +34,7 @@ class PPUMemory {
     } else if (index >= 0x3F00 && index < 0x4000) {
       index = 0x3F00 | (index & 0x1F);
       if ((index & 3) == 0) {
-        index = 0x3F00;
+        index = 0x3F00 | (index & 0xF);
       }
     }
 

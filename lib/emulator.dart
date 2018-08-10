@@ -39,8 +39,11 @@ class NESEmulator {
     _playing = false;
   }
 
+  int _total_ticks = 0;
+
   /// run one cpu cycle
   void tick() {
+    _total_ticks++;
     _cpu.tick();
     _cpu.ppu.tick();
   }
