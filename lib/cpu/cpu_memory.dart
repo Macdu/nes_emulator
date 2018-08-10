@@ -108,7 +108,6 @@ class CPUMemory {
 
       case 0x2004:
         int res = ppu_memory.spr_ram[_sprite_memory_addr];
-        _sprite_memory_addr = (_sprite_memory_addr + 1) & 0xFF;
         return res;
 
       case 0x2007:
@@ -166,6 +165,10 @@ class CPUMemory {
         _sprite_memory_addr = value;
         break;
       case 0x2004:
+        if (_sprite_memory_addr & 3 == 2) {
+          // bits 234 of byte 2 are unimplemented
+          value &= 0xE3;
+        }
         ppu_memory.spr_ram[_sprite_memory_addr] = value;
         _sprite_memory_addr++;
         _sprite_memory_addr &= 0xFF;
@@ -197,9 +200,10 @@ class CPUMemory {
       case 0x4014:
         // DMA
         for (int i = _sprite_memory_addr; i <= 0xFF; i++) {
-          ppu_memory.spr_ram[i] = this[(value << 8) + i];
+          ppu_memory.spr_ram[(_sprite_memory_addr + i) & 0xFF] =
+              this[(value << 8) + i];
         }
-        cpu._interpreter._cpu_cycles += 512;
+        cpu._interpreter._cpu_cycles += 513;
         break;
       case 0x4016:
         if ((value & 1) == 1) {
