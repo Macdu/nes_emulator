@@ -199,7 +199,7 @@ class CPUMemory {
         break;
       case 0x4014:
         // DMA
-        for (int i = _sprite_memory_addr; i <= 0xFF; i++) {
+        for (int i = 0; i <= 0xFF; i++) {
           ppu_memory.spr_ram[(_sprite_memory_addr + i) & 0xFF] =
               this[(value << 8) + i];
         }
