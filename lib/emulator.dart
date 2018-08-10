@@ -78,6 +78,7 @@ class NESEmulator {
       ppu.memory.load_chr_rom(rom, offset);
     }
     reset();
+    _cpu.state.sp = 0xFD;
   }
 
   /// reset the emulator

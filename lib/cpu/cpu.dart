@@ -53,6 +53,7 @@ class CPU {
           _interpreter._save_state(false);
 
           state.pc = _interpreter._read_16bit_addr(0xFFFE);
+          state.interrupt_disable = true;
         }
         break;
       case InterruptType.NMI:
@@ -64,7 +65,9 @@ class CPU {
         }
         break;
       case InterruptType.RESET:
-        _interpreter._save_state(true);
+        if (state.sp <= 3) state.sp += 0x100;
+        state.sp -= 3;
+        state.interrupt_disable = true;
 
         state.pc = _interpreter._read_16bit_addr(0xFFFC);
         break;
