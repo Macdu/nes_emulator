@@ -31,7 +31,7 @@ class Interpreter {
     List g = f;
     //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
-    //if (cond == 0xD9) debugger();
+    if (_state.pc == 0xE101) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -41,6 +41,7 @@ class Interpreter {
         _opcodes_used = 0;
         _save_state(true);
         _state.pc = _memory.irq_address;
+        _state.interrupt_disable = true;
         break;
 
       //01 - ORA - (Indirect,X)
