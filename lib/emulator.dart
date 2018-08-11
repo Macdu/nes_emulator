@@ -2,6 +2,7 @@ library nes;
 
 import 'dart:html' show CanvasElement, window;
 import 'dart:typed_data';
+import 'dart:async';
 
 import 'cpu/cpu.dart';
 import 'gamepad/gamepad.dart';
@@ -26,16 +27,22 @@ class NESEmulator {
   NESEmulator(CanvasElement target) {
     _cpu.ppu.init(target, _cpu);
     _cpu.gamepad = gamepad;
+    chrono.start();
   }
+
+  Stopwatch chrono = new Stopwatch();
 
   /// run the emulator
   void run() async {
     _playing = true;
     if (_curr_rom == null) return;
     while (_playing) {
-      await window.animationFrame;
+      await new Future.delayed(const Duration(milliseconds: 0));
+
       // render about one frame
+      chrono.reset();
       for (int i = 0; i < 29781; i++) tick();
+      print(chrono.elapsedMilliseconds);
     }
   }
 
@@ -59,7 +66,10 @@ class NESEmulator {
   void loadRom(Uint8List rom) {
     // check file
 
-    int mapper_id = rom[7] >> 4;
+    int mapper_id = rom[7] | (rom[6] >> 4);
+    if (!mappers.containsKey(mapper_id)) {
+      throw "Unknown mapper id $mapper_id";
+    }
     this._mapper = mappers[mapper_id];
     _curr_rom = rom;
 
