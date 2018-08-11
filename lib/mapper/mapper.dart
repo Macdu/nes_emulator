@@ -1,15 +1,16 @@
 library nes.mapper;
 
 import 'dart:typed_data';
+import 'dart:developer';
 
 import '../cpu/cpu.dart';
 
 part 'nrom.dart';
+part 'mmc1.dart';
 
 final Map<int, Mapper> mappers = {
   0: NROMMapper(),
-  2: NROMMapper(),
-  3: NROMMapper(),
+  1: MMC1Mapper(),
 };
 
 abstract class Mapper {
@@ -20,8 +21,11 @@ abstract class Mapper {
   int _nb_chr;
   bool _has_sram;
 
-  /// current offset for looking internally at the components of the game
-  int _offset;
+  /// Start address of the PGR ROM
+  int _pgr_start;
+
+  /// Start address of the CHR ROM
+  int _chr_start;
 
   /// if SRAM is present in this game
   bool get has_sram => _has_sram;
@@ -43,12 +47,14 @@ abstract class Mapper {
       return;
     }
 
-    _offset = 16;
+    _pgr_start = 16;
     if ((_rom[6] & (1 << 2)) != 0) {
       // contains a 512-byte trainer
-      _cpu.memory.load_trainer(_rom, _offset);
-      _offset += 512;
+      _cpu.memory.load_trainer(_rom, 16);
+      _pgr_start += 512;
     }
+
+    _chr_start = _pgr_start + (1 << 14) * (_nb_pgr);
   }
 
   /// Called when a memory writes happens in the PGR rom

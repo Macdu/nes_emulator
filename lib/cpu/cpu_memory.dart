@@ -47,6 +47,12 @@ class CPUMemory {
     _copy_memory(from, start, 1 << 14, 0x8000);
   }
 
+  /// load the 32-bit whole PGR
+  /// located at $8000-$CFFF
+  void load_PGR(Uint8List from, int start) {
+    _copy_memory(from, start, 1 << 15, 0x8000);
+  }
+
   /// load a 512-byte trainer
   /// located at $7000-$71FF
   void load_trainer(Uint8List from, int start) {
@@ -146,11 +152,12 @@ class CPUMemory {
       // sram, may disable it if no sram inserted
       _data[index] = value;
       return;
-    }
-
-    if ((index >= 0x4000 && index <= 0x4013) || index == 0x4015) {
+    } else if ((index >= 0x4000 && index <= 0x4013) || index == 0x4015) {
       // sound, not implemented yet
       _data[index] = value;
+      return;
+    } else if (index >= 0x8000) {
+      _cpu.mapper.memory_write(index, value);
       return;
     }
 

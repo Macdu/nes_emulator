@@ -55,10 +55,25 @@ class PPUMemory {
     _data[index] = value;
   }
 
+  void _copy_memory(Uint8List from, int start, int length, int to) {
+    // Add some code to check validity ?
+    for (int i = 0; i < length; i++) {
+      _data[to + i] = from[start + i];
+    }
+  }
+
   /// load a 8k bit CHR ROM at location $0000
   void load_chr_rom(Uint8List from, int start) {
-    for (int i = 0; i < 0x2000; i++) {
-      _data[i] = from[start + i];
-    }
+    _copy_memory(from, start, 0x2000, 0);
+  }
+
+  /// load a 4k bit CHR ROM at location $0000
+  void load_chr_rom_low(Uint8List from, int start) {
+    _copy_memory(from, start, 0x1000, 0);
+  }
+
+  /// load a 4k bit CHR ROM at location $1000
+  void load_chr_rom_high(Uint8List from, int start) {
+    _copy_memory(from, start, 0x1000, 0x1000);
   }
 }

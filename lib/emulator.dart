@@ -82,6 +82,7 @@ class NESEmulator {
     if (_curr_rom == null) return;
 
     _mapper.init(cpu, _curr_rom);
+    _cpu.mapper = _mapper;
     _cpu.interrupt(InterruptType.RESET);
     // ppu reset ?
   }
