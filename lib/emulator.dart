@@ -66,7 +66,11 @@ class NESEmulator {
   void loadRom(Uint8List rom) {
     // check file
 
-    int mapper_id = rom[7] | (rom[6] >> 4);
+    int mapper_id = (rom[7] & 0xF0) | (rom[6] >> 4);
+    if (rom[0xF] == 0x21) {
+      // old iNES file, contains DiskDude
+      mapper_id -= 64;
+    }
     if (!mappers.containsKey(mapper_id)) {
       throw "Unknown mapper id $mapper_id";
     }

@@ -1,6 +1,6 @@
 part of nes.mapper;
 
-class MMC1Mapper extends Mapper {
+class MMC1Mapper extends NROMMapper {
   int _curr_buffer = 0;
   int _buffer_step = 0;
 
@@ -11,19 +11,6 @@ class MMC1Mapper extends Mapper {
 
   /// switch 4k or 8k of chr rom at a time
   bool _copy_chr_8k = false;
-
-  void init(CPU cpu, Uint8List rom) {
-    super.init(cpu, rom);
-
-    // load first and last pgr roms
-    _cpu.memory.load_PGR_lower(_rom, _pgr_start);
-    _cpu.memory.load_PGR_upper(_rom, _pgr_start + (1 << 14) * (_nb_pgr - 1));
-
-    // not sure if I have to load this part
-    if (_nb_chr > 1) {
-      _cpu.ppu.memory.load_chr_rom(_rom, _chr_start);
-    }
-  }
 
   void memory_write(int index, int value) {
     int id = (index - 0x8000) >> 13;

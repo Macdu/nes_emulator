@@ -7,10 +7,14 @@ import '../cpu/cpu.dart';
 
 part 'nrom.dart';
 part 'mmc1.dart';
+part 'unrom.dart';
+part 'cnrom.dart';
 
 final Map<int, Mapper> mappers = {
-  0: NROMMapper(),
-  1: MMC1Mapper(),
+  0: new NROMMapper(),
+  1: new MMC1Mapper(),
+  2: new UNROMMapper(),
+  3: new CNROMMapper(),
 };
 
 abstract class Mapper {
