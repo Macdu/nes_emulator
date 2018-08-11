@@ -7,6 +7,7 @@ import 'dart:developer';
 
 import '../ppu/ppu.dart';
 import '../gamepad/gamepad.dart';
+import '../mapper/mapper.dart';
 
 part "cpu_memory.dart";
 part "state.dart";
@@ -37,6 +38,9 @@ class CPU {
 
   /// access to the gamepad
   GamePad gamepad;
+
+  /// access the the game memory mapper
+  Mapper mapper;
 
   CPU() {
     state.load_processor_flags(0);

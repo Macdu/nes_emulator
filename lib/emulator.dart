@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'cpu/cpu.dart';
 import 'gamepad/gamepad.dart';
 import 'ppu/ppu.dart';
+import 'mapper/mapper.dart';
 
 /// Emulates an NES to a given canvas
 class NESEmulator {
@@ -13,8 +14,11 @@ class NESEmulator {
   GamePad gamepad = new GamePad();
   bool _playing = false;
 
-  int _nb_pgr_rom;
-  int _nb_chr_rom;
+  /// Keep access to the rom
+  Uint8List _curr_rom;
+
+  Mapper _mapper;
+  Mapper get mapper => _mapper;
 
   CPU get cpu => _cpu;
   PPU get ppu => _cpu.ppu;
@@ -27,6 +31,7 @@ class NESEmulator {
   /// run the emulator
   void run() async {
     _playing = true;
+    if (_curr_rom == null) return;
     while (_playing) {
       await window.animationFrame;
       // render about one frame
@@ -43,6 +48,8 @@ class NESEmulator {
 
   /// run one cpu cycle
   void tick() {
+    if (_curr_rom == null) return;
+
     _total_ticks++;
     _cpu.tick();
     _cpu.ppu.tick();
@@ -51,41 +58,20 @@ class NESEmulator {
   /// load rom from a ByteBuffer
   void loadRom(Uint8List rom) {
     // check file
-    Uint8List infos = rom; // new Uint8List.view(rom, 0, 16);
-    if (infos[0] != 0x4E || infos[1] != 0x45 || infos[2] != 0x53) {
-      print("Bad NES file header");
-      return;
-    }
 
-    _nb_pgr_rom = rom[4];
-    _nb_chr_rom = rom[5];
+    int mapper_id = rom[7] >> 4;
+    this._mapper = mappers[mapper_id];
+    _curr_rom = rom;
 
-    int offset = 16;
-    if ((infos[6] & (1 << 2)) != 0) {
-      // contains a 512-byte trainer
-      _cpu.memory.load_trainer(rom, offset);
-      offset += 512;
-    }
-
-    int pgr_lower_start = offset;
-    int pgr_higher_start = offset;
-    offset += 1 << 14;
-    if (_nb_pgr_rom > 1) {
-      pgr_higher_start += (1 << 14);
-      offset += 1 << 14;
-    }
-    _cpu.memory.load_PGR_lower(rom, pgr_lower_start);
-    _cpu.memory.load_PGR_upper(rom, pgr_higher_start);
-
-    if (_nb_chr_rom >= 1) {
-      ppu.memory.load_chr_rom(rom, offset);
-    }
     reset();
     _cpu.state.sp = 0xFD;
   }
 
   /// reset the emulator
   void reset() {
+    if (_curr_rom == null) return;
+
+    _mapper.init(cpu, _curr_rom);
     _cpu.interrupt(InterruptType.RESET);
     // ppu reset ?
   }
