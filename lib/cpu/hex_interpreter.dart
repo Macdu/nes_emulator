@@ -29,7 +29,7 @@ class Interpreter {
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
     List g = f;
-    //g.add(_state.pc.toRadixString(16));
+    g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
     //if (_state.pc == 0xA395) debugger();
     switch (cond) {
@@ -1177,7 +1177,7 @@ class Interpreter {
     _nz_update(res);
     _carry_update(res);
     _state.overflow = (((x ^ y) & 0x80) == 0) && (((x ^ res) & 0x80) != 0);
-    return res;
+    return res & 0xFF;
   }
 
   // sbc operation and update the flags
