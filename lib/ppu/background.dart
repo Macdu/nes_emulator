@@ -9,13 +9,13 @@ class Background {
   /// return the palette for the background
   List<Color> _read_palette() {
     List<Color> res = new List<Color>(16);
-    _transparent = nes_palette[_ppu.memory[0x3F00]];
+    _transparent = nes_palette[_ppu.memory._data[0x3F00]];
     for (int i = 0; i < 16; i++) {
       if ((i & 3) == 0) {
         res[i] = _transparent;
       } else {
-        res[i] = nes_palette[
-            _ppu.memory[0x3F00 + i] & 0x3F]; // image palette starts at 0x3F10
+        res[i] = nes_palette[_ppu.memory._data[0x3F00 + i] &
+            0x3F]; // image palette starts at 0x3F10
       }
     }
     return res;
@@ -28,39 +28,41 @@ class Background {
 
     List<Color> palette = _read_palette();
 
-    for (int tile = 0; tile < 32 * 30 * 4; tile++) {
-      table_offset = 0;
-      int col = tile & ((1 << 6) - 1);
-      int line = tile >> 6;
-      int old_col = col;
-      int old_line = line;
-      if (line >= 30) {
-        line -= 30;
-        table_offset |= 0x800;
-      }
-      if (col >= 32) {
-        col -= 32;
-        table_offset |= 0x400;
-      }
-      int real_tile = line * 32 + col;
-      // get the high bit
-      int square = ((col & 2) >> 1) + (line & 2);
-      int number = (col >> 2) + ((line >> 2) << 3);
-      int addr = 0x23C0 + table_offset + number;
-      int high_bit = ((_ppu.memory[addr] >> (2 * square)) & 3) << 2;
+    for (int delta_line = 0; delta_line < 31; delta_line++) {
+      for (int old_col = 0; old_col < 64; old_col++) {
+        table_offset = 0;
+        int line = (delta_line + (_ppu.y_delta >> 3)) % 480;
+        int col = old_col;
+        int old_line = line;
+        if (line >= 30) {
+          line -= 30;
+          table_offset |= 0x800;
+        }
+        if (col >= 32) {
+          col -= 32;
+          table_offset |= 0x400;
+        }
+        int real_tile = line * 32 + col;
+        // get the high bit
+        int square = ((col & 2) >> 1) + (line & 2);
+        int number = (col >> 2) + ((line >> 2) << 3);
+        int addr = 0x23C0 + table_offset + number;
+        int high_bit = ((_ppu.memory._data[addr] >> (2 * square)) & 3) << 2;
 
-      int pattern =
-          (_ppu.memory[0x2000 + table_offset + real_tile] << 4) + pattern_loc;
+        int pattern =
+            (_ppu.memory._data[0x2000 + table_offset + real_tile] << 4) +
+                pattern_loc;
 
-      // Now we can render the pixels
-      for (int x = 0; x < 8; x++) {
-        for (int y = 0; y < 8; y++) {
-          int color = high_bit |
-              ((_ppu.memory[pattern + y] >> (7 - x)) & 1) |
-              (((_ppu.memory[pattern + 8 + y] >> (7 - x)) & 1) << 1);
+        // Now we can render the pixels
+        for (int x = 0; x < 8; x++) {
+          for (int y = 0; y < 8; y++) {
+            int color = high_bit |
+                ((_ppu.memory._data[pattern + y] >> (7 - x)) & 1) |
+                (((_ppu.memory._data[pattern + 8 + y] >> (7 - x)) & 1) << 1);
 
-          _result[(old_line * 8 + y) * 256 * 2 + (old_col * 8 + x)] =
-              palette[color];
+            _result[(old_line * 8 + y) * 256 * 2 + (old_col * 8 + x)] =
+                palette[color];
+          }
         }
       }
     }

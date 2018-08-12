@@ -30,8 +30,6 @@ class NESEmulator {
     chrono.start();
   }
 
-  Stopwatch chrono = new Stopwatch();
-
   /// run the emulator
   void run() async {
     _playing = true;
@@ -42,7 +40,7 @@ class NESEmulator {
       // render about one frame
       chrono.reset();
       for (int i = 0; i < 29781; i++) tick();
-      print(chrono.elapsedMilliseconds);
+      //print(chrono.elapsedMilliseconds);
     }
   }
 

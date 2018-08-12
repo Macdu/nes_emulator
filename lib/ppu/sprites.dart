@@ -18,13 +18,13 @@ class Sprites {
   /// return the palette for the sprites
   List<Color> _read_palette() {
     List<Color> res = new List<Color>(16);
-    _transparent = nes_palette[_ppu.memory[0x3F00]];
+    _transparent = nes_palette[_ppu.memory._data[0x3F00]];
     for (int i = 0; i < 16; i++) {
       if ((i & 3) == 0) {
         res[i] = _transparent;
       } else {
-        res[i] = nes_palette[
-            _ppu.memory[0x3F10 + i] & 0x3F]; // sprite palette starts at 0x3F10
+        res[i] = nes_palette[_ppu.memory._data[0x3F10 + i] &
+            0x3F]; // sprite palette starts at 0x3F10
       }
     }
     return res;
@@ -83,10 +83,10 @@ class Sprites {
           // same part as in background
           // auto_format isn't looking really well here
           int color = high_palette |
-              ((_ppu.memory[pattern_start + y_pattern_pos] >>
+              ((_ppu.memory._data[pattern_start + y_pattern_pos] >>
                       (7 - x_pattern_pos)) &
                   1) |
-              (((_ppu.memory[pattern_start + 8 + y_pattern_pos] >>
+              (((_ppu.memory._data[pattern_start + 8 + y_pattern_pos] >>
                           (7 - x_pattern_pos)) &
                       1) <<
                   1);
