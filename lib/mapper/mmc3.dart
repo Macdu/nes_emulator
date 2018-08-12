@@ -61,6 +61,7 @@ class MMC3Mapper extends NROMMapper {
         // bank change
         // value &= 0x3F
         if (_write_to_ppu) {
+          if (_nb_chr == 0) break;
           _cpu.ppu.memory.copy_memory(_rom, _chr_start + value * (1 << 10),
               _size_to_write, _index_to_write);
         } else {
