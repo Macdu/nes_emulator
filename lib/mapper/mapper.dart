@@ -9,12 +9,14 @@ part 'nrom.dart';
 part 'mmc1.dart';
 part 'unrom.dart';
 part 'cnrom.dart';
+part 'mmc3.dart';
 
 final Map<int, Mapper> mappers = {
   0: new NROMMapper(),
   1: new MMC1Mapper(),
   2: new UNROMMapper(),
   3: new CNROMMapper(),
+  4: new MMC3Mapper(),
 };
 
 abstract class Mapper {
@@ -65,4 +67,7 @@ abstract class Mapper {
   void memory_write(int index, int value) {
     throw "Attempt to write at memory location 0x${index.toRadixString(16)}";
   }
+
+  /// Used for MMC3 IRQ
+  void count_scanline() {}
 }

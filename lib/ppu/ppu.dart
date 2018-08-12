@@ -105,6 +105,9 @@ class PPU {
   /// make one CPU tick
   void tick() {
     if (_cycles_left <= 0) {
+      // notify the (potential) mapper
+      cpu.mapper.count_scanline();
+
       // start a new scanline
       _curr_scanline++;
       if (_curr_scanline == 262) _curr_scanline = 0;

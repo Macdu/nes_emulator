@@ -38,28 +38,29 @@ class CPUMemory {
   /// load a 16-bit upper part of the PGR
   /// located at $C000-$CFFF
   void load_PGR_upper(Uint8List from, int start) {
-    _copy_memory(from, start, 1 << 14, 0xC000);
+    copy_memory(from, start, 1 << 14, 0xC000);
   }
 
   /// load the 16-bit lower part of the PGR
   /// located at $8000-$8FFF
   void load_PGR_lower(Uint8List from, int start) {
-    _copy_memory(from, start, 1 << 14, 0x8000);
+    copy_memory(from, start, 1 << 14, 0x8000);
   }
 
   /// load the 32-bit whole PGR
   /// located at $8000-$CFFF
   void load_PGR(Uint8List from, int start) {
-    _copy_memory(from, start, 1 << 15, 0x8000);
+    copy_memory(from, start, 1 << 15, 0x8000);
   }
 
   /// load a 512-byte trainer
   /// located at $7000-$71FF
   void load_trainer(Uint8List from, int start) {
-    _copy_memory(from, start, 512, 0x7000);
+    copy_memory(from, start, 512, 0x7000);
   }
 
-  void _copy_memory(Uint8List from, int start, int length, int to) {
+  /// Used by mappers
+  void copy_memory(Uint8List from, int start, int length, int to) {
     // Add some code to check validity ?
     for (int i = 0; i < length; i++) {
       _data[to + i] = from[start + i];
