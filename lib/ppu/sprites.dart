@@ -2,7 +2,7 @@ part of nes.ppu;
 
 /// load the sprites
 class Sprites {
-  final List<Color> _result = new List(256 * 240 * 4);
+  final Uint8List _result = new Uint8List(256 * 240 * 4);
 
   /// number of sprites in a scanline
   final List<int> _nb_sprites = new List.filled(240, 0);
@@ -15,25 +15,9 @@ class Sprites {
 
   PPU _ppu;
 
-  /// return the palette for the sprites
-  List<Color> _read_palette() {
-    List<Color> res = new List<Color>(16);
-    _transparent = nes_palette[_ppu.memory._data[0x3F00]];
-    for (int i = 0; i < 16; i++) {
-      if ((i & 3) == 0) {
-        res[i] = _transparent;
-      } else {
-        res[i] = nes_palette[_ppu.memory._data[0x3F10 + i] &
-            0x3F]; // sprite palette starts at 0x3F10
-      }
-    }
-    return res;
-  }
-
   /// the sprites are rendered each frame
   void _render() {
-    List<Color> palette = _read_palette();
-    _result.fillRange(0, _result.length, _transparent);
+    _result.fillRange(0, _result.length, 0);
     _nb_sprites.fillRange(0, _nb_sprites.length, 0);
     _has_priority.fillRange(0, _has_priority.length, false);
     _sprite0_opaque_pixels.fillRange(0, _sprite0_opaque_pixels.length, false);
@@ -74,7 +58,7 @@ class Sprites {
           if (x >= 256) break;
 
           // sprite priority
-          if (_result[y * 256 + x] != palette[0]) {
+          if (_result[y * 256 + x] != 0) {
             continue;
           }
 
@@ -90,9 +74,10 @@ class Sprites {
                           (7 - x_pattern_pos)) &
                       1) <<
                   1);
-          _result[y * 256 + x] = palette[color];
+          if ((color & 3) == 0) color = 0;
+          _result[y * 256 + x] = (color == 0) ? 0 : (color + 16);
           _has_priority[y * 256 + x] = priority;
-          if (id == 0 && palette[color] != palette[0]) {
+          if (id == 0 && color != 0) {
             // sprite 0 hit check
             _sprite0_opaque_pixels[y * 256 + x] = true;
           }

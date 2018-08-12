@@ -2,31 +2,14 @@ part of nes.ppu;
 
 /// render the background
 class Background {
-  List<Color> _result = new List<Color>(256 * 240 * 4);
+  Uint8List _result = new Uint8List(256 * 240 * 4);
 
   PPU _ppu;
-
-  /// return the palette for the background
-  List<Color> _read_palette() {
-    List<Color> res = new List<Color>(16);
-    _transparent = nes_palette[_ppu.memory._data[0x3F00]];
-    for (int i = 0; i < 16; i++) {
-      if ((i & 3) == 0) {
-        res[i] = _transparent;
-      } else {
-        res[i] = nes_palette[_ppu.memory._data[0x3F00 + i] &
-            0x3F]; // image palette starts at 0x3F10
-      }
-    }
-    return res;
-  }
 
   /// the background is rendered each frame
   void _render() {
     int pattern_loc = _ppu.pattern_background_location * 0x1000;
     int table_offset = 0; // offset from $2000
-
-    List<Color> palette = _read_palette();
 
     for (int delta_line = 0; delta_line < 31; delta_line++) {
       for (int old_col = 0; old_col < 64; old_col++) {
@@ -60,8 +43,7 @@ class Background {
                 ((_ppu.memory._data[pattern + y] >> (7 - x)) & 1) |
                 (((_ppu.memory._data[pattern + 8 + y] >> (7 - x)) & 1) << 1);
 
-            _result[(old_line * 8 + y) * 256 * 2 + (old_col * 8 + x)] =
-                palette[color];
+            _result[(old_line * 8 + y) * 256 * 2 + (old_col * 8 + x)] = color;
           }
         }
       }

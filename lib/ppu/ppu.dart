@@ -96,6 +96,10 @@ class PPU {
     _ctx = _canvasToDraw.context2D;
     _screen = _ctx.createImageData(256, 240);
     this._cpu = cpu;
+    for (int i = 0; i < 256 * 240; i++) {
+      // no alpha channel
+      _screen.data[i * 4 + 3] = 0xFF;
+    }
   }
 
   // starts the first tick at scanline 0
@@ -120,17 +124,14 @@ class PPU {
         if (display_background) {
           _background._render();
         } else {
-          _transparent = nes_palette[memory[0x3F00]];
-          _background._result
-              .fillRange(0, _background._result.length, _transparent);
+          _background._result.fillRange(0, _background._result.length, 0);
         }
         //print("f:" + chrono.elapsedMilliseconds.toString());
         //chrono.reset();
         if (display_sprite) {
           _sprites._render();
         } else {
-          _transparent = nes_palette[memory[0x3F00]];
-          _sprites._result.fillRange(0, _sprites._result.length, _transparent);
+          _sprites._result.fillRange(0, _sprites._result.length, 0);
           _sprites._sprite0_opaque_pixels
               .fillRange(0, _sprites._sprite0_opaque_pixels.length, false);
         }
@@ -169,6 +170,7 @@ class PPU {
 
   /// render the current line
   void _render_line() {
+    List<Color> palette = _read_palette(memory);
     if (_sprites._nb_sprites[_curr_scanline] > 8) {
       overflow_flag = true;
     }
@@ -176,25 +178,25 @@ class PPU {
 
     for (int x = 0; x < 256; x++) {
       int curr_x = (x + x_delta) % (256 * 2);
-      Color rendered = _background._result[curr_y * 256 * 2 + curr_x];
+      int color_rendered = _background._result[curr_y * 256 * 2 + curr_x];
 
       // check sprite 0 collision
-      if (_sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x] &&
-          rendered != _transparent) {
+      // 0 is the transparent color
+      if (color_rendered != 0 &&
+          _sprites._sprite0_opaque_pixels[_curr_scanline * 256 + x]) {
         sprite0_hit_flag = true;
       }
 
-      if (_sprites._result[_curr_scanline * 256 + x] != _transparent &&
-          (rendered == _transparent ||
+      if (_sprites._result[_curr_scanline * 256 + x] != 0 &&
+          (color_rendered == 0 ||
               _sprites._has_priority[_curr_scanline * 256 + x])) {
         // the color rendered is the one of the sprite
-        rendered = _sprites._result[_curr_scanline * 256 + x];
+        color_rendered = _sprites._result[_curr_scanline * 256 + x];
       }
       int screen_pos = (_curr_scanline * 256 + x) * 4;
-      _screen.data[screen_pos] = rendered.r;
-      _screen.data[screen_pos + 1] = rendered.v;
-      _screen.data[screen_pos + 2] = rendered.b;
-      _screen.data[screen_pos + 3] = 0xFF; // no alpha channel
+      _screen.data[screen_pos] = palette[color_rendered].r;
+      _screen.data[screen_pos + 1] = palette[color_rendered].v;
+      _screen.data[screen_pos + 2] = palette[color_rendered].b;
     }
   }
 }

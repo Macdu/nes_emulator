@@ -10,8 +10,16 @@ class Color {
         b = hex & 0xFF;
 }
 
-// the current transparent color
-Color _transparent;
+/// return the palette for the background and sprites
+List<Color> _read_palette(PPUMemory memory) {
+  List<Color> res = new List<Color>(32);
+  for (int i = 0; i < 32; i++) {
+    res[i] = nes_palette[
+        memory._data[0x3F00 + i] & 0x3F]; // image palette starts at 0x3F10
+  }
+
+  return res;
+}
 
 /// nes color palette from http://nesdev.com/nespal.txt
 const List<Color> nes_palette = [
