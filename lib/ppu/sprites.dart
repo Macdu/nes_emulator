@@ -37,8 +37,8 @@ class Sprites {
       bool swap_verti = (attributes & (1 << 7)) != 0;
 
       int pattern_start = is8x16
-          ? 0x1000 * (pattern_index & 1) | (pattern_index * 0x10)
-          : pattern_address | (pattern_index * 0x10);
+          ? 0x1000 * (pattern_index & 1) | ((pattern_index >> 1) << 5)
+          : pattern_address | (pattern_index << 4);
 
       for (int y = start_y; y < start_y + (is8x16 ? 16 : 8); y++) {
         if (y >= 240) break;
@@ -58,7 +58,7 @@ class Sprites {
           if (x >= 256) break;
 
           // sprite priority
-          if (_result[y * 256 + x] != 0) {
+          if ((_result[y * 256 + x] & 3) != 0) {
             continue;
           }
 
