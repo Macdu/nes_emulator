@@ -179,6 +179,7 @@ class PPU {
     for (int x = 0; x < 256; x++) {
       int curr_x = (x + x_delta) % (256 * 2);
       int color_rendered = _background._result[curr_y * 256 * 2 + curr_x];
+      if ((color_rendered & 3) == 0) color_rendered = 0;
 
       // check sprite 0 collision
       // 0 is the transparent color
@@ -187,7 +188,7 @@ class PPU {
         sprite0_hit_flag = true;
       }
 
-      if (_sprites._result[_curr_scanline * 256 + x] != 0 &&
+      if ((_sprites._result[_curr_scanline * 256 + x] & 3) != 0 &&
           (color_rendered == 0 ||
               _sprites._has_priority[_curr_scanline * 256 + x])) {
         // the color rendered is the one of the sprite

@@ -74,10 +74,9 @@ class Sprites {
                           (7 - x_pattern_pos)) &
                       1) <<
                   1);
-          if ((color & 3) == 0) color = 0;
-          _result[y * 256 + x] = (color == 0) ? 0 : (color + 16);
+          _result[y * 256 + x] = color + 16;
           _has_priority[y * 256 + x] = priority;
-          if (id == 0 && color != 0) {
+          if (id == 0 && (color & 3) != 0) {
             // sprite 0 hit check
             _sprite0_opaque_pixels[y * 256 + x] = true;
           }
