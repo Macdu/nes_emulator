@@ -35,6 +35,9 @@ class CPUMemory {
   int get _ppu_addr_increase =>
       ((ppu_memory.control_register >> 2) & 1) == 1 ? 32 : 1;
 
+  /// ppu memory buffer
+  int _ppu_memory_buffer = 0;
+
   /// load a 16-bit upper part of the PGR
   /// located at $C000-$CFFF
   void load_PGR_upper(Uint8List from, int start) {
@@ -119,6 +122,12 @@ class CPUMemory {
 
       case 0x2007:
         int res = ppu_memory[_ppu_memory_addr];
+        if ((_ppu_memory_addr & 0x3FFF) < 0x3F00) {
+          // emulate buffered read when to reading palette
+          int temp = _ppu_memory_buffer;
+          _ppu_memory_buffer = res;
+          res = temp;
+        }
         _ppu_memory_addr += _ppu_addr_increase;
         _ppu_memory_addr &= 0xFFFF;
         return res;
