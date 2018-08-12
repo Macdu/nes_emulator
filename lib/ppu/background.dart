@@ -31,7 +31,7 @@ class Background {
     for (int delta_line = 0; delta_line < 31; delta_line++) {
       for (int old_col = 0; old_col < 64; old_col++) {
         table_offset = 0;
-        int line = (delta_line + (_ppu.y_delta >> 3)) % 480;
+        int line = (delta_line + (_ppu.y_delta >> 3)) % 60;
         int col = old_col;
         int old_line = line;
         if (line >= 30) {
