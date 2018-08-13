@@ -75,6 +75,14 @@ class NESEmulator {
     this._mapper = mappers[mapper_id];
     _curr_rom = rom;
 
+    if ((rom[0x6] & (1 << 3)) != 0) {
+      _cpu.ppu.mirroring = MirroringType.FourScreens;
+    } else if ((rom[0x6] & 1) == 1) {
+      _cpu.ppu.mirroring = MirroringType.Vertical;
+    } else {
+      _cpu.ppu.mirroring = MirroringType.Horizontal;
+    }
+
     reset();
     _cpu.state.sp = 0xFD;
   }

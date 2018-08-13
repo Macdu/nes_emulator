@@ -11,6 +11,8 @@ part 'color_palette.dart';
 part 'background.dart';
 part 'sprites.dart';
 
+enum MirroringType { Horizontal, Vertical, FourScreens, SingleScreen }
+
 /// simulate a NES PPU
 class PPU {
   /// The Canvas element to draw to
@@ -88,6 +90,14 @@ class PPU {
   /// return the CPU related to this PPU
   CPU get cpu => _cpu;
   CPU _cpu;
+
+  /// The ppu mirroring used
+  /// Single screen is not really supported
+  set mirroring(MirroringType type) {
+    if (_mirroring != MirroringType.FourScreens) _mirroring = type;
+  }
+
+  MirroringType _mirroring;
 
   void init(CanvasElement target, CPU cpu) {
     _canvasToDraw = target;

@@ -29,7 +29,7 @@ class Interpreter {
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
     List g = f;
-    g.add(_state.pc.toRadixString(16));
+    //g.add(_state.pc.toRadixString(16));
     String a = _state.pc.toRadixString(16);
     //if (_state.pc == 0xA395) debugger();
     switch (cond) {

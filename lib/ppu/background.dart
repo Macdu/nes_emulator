@@ -6,25 +6,41 @@ class Background {
 
   PPU _ppu;
 
+  static const List<List<int>> _mirroring_tables = const [
+    // Horizontal
+    [0, 0, 0x800, 0x800],
+    // Vertical
+    [0, 0x400, 0, 0x400],
+    // Four screens
+    [0, 0x400, 0x800, 0xC00],
+    // Single screen
+    [0, 0, 0, 0],
+  ];
+
   /// the background is rendered each frame
   void _render() {
     int pattern_loc = _ppu.pattern_background_location * 0x1000;
-    int table_offset = 0; // offset from $2000
+    int table_offset; // offset from $2000
+    int mirroring_offset;
 
     for (int delta_line = 0; delta_line < 31; delta_line++) {
       for (int old_col = 0; old_col < 64; old_col++) {
         table_offset = 0;
+        mirroring_offset = 0;
         int line = (delta_line + (_ppu.y_delta >> 3)) % 60;
         int col = old_col;
         int old_line = line;
         if (line >= 30) {
           line -= 30;
-          table_offset |= 0x800;
+          mirroring_offset |= 2;
+          ;
         }
         if (col >= 32) {
           col -= 32;
-          table_offset |= 0x400;
+          mirroring_offset |= 1;
         }
+        table_offset =
+            _mirroring_tables[_ppu._mirroring.index][mirroring_offset];
         int real_tile = line * 32 + col;
         // get the high bit
         int square = ((col & 2) >> 1) + (line & 2);

@@ -77,6 +77,9 @@ class MMC3Mapper extends NROMMapper {
         break;
       case 2:
         // Mirroring
+        _cpu.ppu.mirroring = ((value & 1) == 0)
+            ? MirroringType.Vertical
+            : MirroringType.Horizontal;
         break;
       case 3:
         // RAM protect

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:developer';
 
 import '../cpu/cpu.dart';
+import '../ppu/ppu.dart';
 
 part 'nrom.dart';
 part 'mmc1.dart';
