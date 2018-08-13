@@ -1,4 +1,5 @@
 import 'dart:html';
+import 'dart:async';
 
 import 'package:nes_emulator/emulator.dart';
 
@@ -44,6 +45,9 @@ void main() {
   querySelector("#charge").onClick.listen(loadRom);
   querySelector("#reset").onClick.listen(reset);
 
+  fps_span = querySelector("#fps");
+  show_fps();
+
   debug_info = querySelector("#debug");
   debug_toggle = querySelector("#do-debug");
   debug_toggle.onChange.listen((_) => debugging = debug_toggle.checked);
@@ -81,4 +85,14 @@ void debug_cpu(Event event) {
 void debug_ppu(Event event) {
   int location = int.parse((event.target as TextInputElement).value, radix: 16);
   ppu_part.innerHtml = "0x${emu.ppu.memory[location].toRadixString(16)}";
+}
+
+SpanElement fps_span;
+
+void show_fps() async {
+  while (true) {
+    fps_span.innerHtml = emu.frame_rendered.toString();
+    emu.frame_rendered = 0;
+    await new Future.delayed(const Duration(seconds: 1));
+  }
 }

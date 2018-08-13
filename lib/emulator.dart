@@ -24,6 +24,8 @@ class NESEmulator {
   CPU get cpu => _cpu;
   PPU get ppu => _cpu.ppu;
 
+  int frame_rendered = 0;
+
   NESEmulator(CanvasElement target) {
     _cpu.ppu.init(target, _cpu);
     _cpu.gamepad = gamepad;
@@ -40,6 +42,7 @@ class NESEmulator {
       // render about one frame
       chrono.reset();
       for (int i = 0; i < 29781; i++) tick();
+      frame_rendered++;
       //print(chrono.elapsedMilliseconds);
     }
   }
