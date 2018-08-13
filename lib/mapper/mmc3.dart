@@ -24,7 +24,7 @@ class MMC3Mapper extends NROMMapper {
     1 << 10,
     1 << 10,
     1 << 13,
-    1 << 13
+    1 << 13,
   ];
 
   static const List<int> _index_from_bank_select = const [
@@ -39,6 +39,7 @@ class MMC3Mapper extends NROMMapper {
   ];
 
   void memory_write(int index, int value) {
+    //print("i 0x${index.toRadixString(16)} v:0x${value.toRadixString(16)}");
     int id = ((index - 0x8000) >> 13) * 2 + (index & 1);
 
     switch (id) {
@@ -50,10 +51,10 @@ class MMC3Mapper extends NROMMapper {
         if (select_loc == 6 && (value & (1 << 6)) != 0) {
           _index_to_write = 0xC000;
         } else if (select_loc <= 5 && (value & (1 << 7)) != 0) {
-          _size_to_write ^= 0x1000;
+          _index_to_write ^= 0x1000;
         }
         _write_to_ppu = (select_loc <= 5);
-        if (((value & (1 << 7)) != 0) != _is_pgr_C000_fixed) {
+        if (((value & (1 << 6)) == 0) != _is_pgr_C000_fixed) {
           _need_fixed_pgr_reload = true;
         }
         break;
