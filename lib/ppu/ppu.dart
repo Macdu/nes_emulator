@@ -131,11 +131,8 @@ class PPU {
       if (_curr_scanline == 0) {
         //chrono.reset();
         // start a new frame
-        if (display_background) {
-          _background._render();
-        } else {
-          _background._result.fillRange(0, _background._result.length, 0);
-        }
+        _background._result.fillRange(
+            0, _background._result.length, display_background ? 255 : 0);
         //print("f:" + chrono.elapsedMilliseconds.toString());
         //chrono.reset();
         if (display_sprite) {
@@ -186,8 +183,16 @@ class PPU {
     }
     int curr_y = (_curr_scanline + y_delta) % 480;
 
+    int first_x = x_delta % 512;
+
     for (int x = 0; x < 256; x++) {
-      int curr_x = (x + x_delta) % (256 * 2);
+      int curr_x = (x + x_delta) % 512;
+
+      if (_background._result[curr_y * 256 * 2 + curr_x] == 255) {
+        // we need to render the background here
+        _background._render_tile_line(first_x, curr_y);
+      }
+
       int color_rendered = _background._result[curr_y * 256 * 2 + curr_x];
       if ((color_rendered & 3) == 0) color_rendered = 0;
 
