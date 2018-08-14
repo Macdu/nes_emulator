@@ -29,7 +29,6 @@ class NESEmulator {
   NESEmulator(CanvasElement target) {
     _cpu.ppu.init(target, _cpu);
     _cpu.gamepad = gamepad;
-    chrono.start();
   }
 
   /// run the emulator
@@ -40,10 +39,8 @@ class NESEmulator {
       await new Future.delayed(const Duration(milliseconds: 0));
 
       // render about one frame
-      chrono.reset();
       for (int i = 0; i < 29781; i++) tick();
       frame_rendered++;
-      //print(chrono.elapsedMilliseconds);
     }
   }
 

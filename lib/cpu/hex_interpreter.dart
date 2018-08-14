@@ -20,7 +20,6 @@ class Interpreter {
 
   /// Create the interpreter with a state and a memory
   Interpreter(this._state, this._memory);
-  List<String> f = [];
 
   /// evaluate the next instruction
   void _eval_next_instruction() {
@@ -28,10 +27,6 @@ class Interpreter {
     _cpu_cycles = 0;
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
-    List g = f;
-    //g.add(_state.pc.toRadixString(16));
-    String a = _state.pc.toRadixString(16);
-    //if (_state.pc == 0xA395) debugger();
     switch (cond) {
 
       // 00 - BRK

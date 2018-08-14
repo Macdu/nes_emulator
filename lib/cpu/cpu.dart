@@ -13,8 +13,6 @@ part "cpu_memory.dart";
 part "state.dart";
 part "hex_interpreter.dart";
 
-Stopwatch chrono = new Stopwatch();
-
 /// different types of interrupt that can occur
 enum InterruptType {
   /// happens when V-Blank occurs

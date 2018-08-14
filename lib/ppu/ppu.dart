@@ -129,12 +129,9 @@ class PPU {
       _cycles_left = 341;
 
       if (_curr_scanline == 0) {
-        //chrono.reset();
         // start a new frame
         _background._result.fillRange(
             0, _background._result.length, display_background ? 255 : 0);
-        //print("f:" + chrono.elapsedMilliseconds.toString());
-        //chrono.reset();
         if (display_sprite) {
           _sprites._render();
         } else {
@@ -142,7 +139,6 @@ class PPU {
           _sprites._sprite0_opaque_pixels
               .fillRange(0, _sprites._sprite0_opaque_pixels.length, false);
         }
-        //print("g:" + chrono.elapsedMilliseconds.toString());
       }
 
       if (_curr_scanline >= 240) {
