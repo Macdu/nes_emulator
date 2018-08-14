@@ -12,10 +12,19 @@ class MMC1Mapper extends NROMMapper {
   /// switch 4k or 8k of chr rom at a time
   bool _copy_chr_8k = false;
 
+  Uint8List _register_values = new Uint8List(4);
+
   void memory_write(int index, int value) {
     int id = (index - 0x8000) >> 13;
     if ((value >> 7) == 1) {
       _reset_register();
+      int old_control = _register_values[0];
+      _register_values[0] |= 0xC;
+      _load_register(0);
+      if (old_control != _register_values[0]) {
+        // update PGR rom
+        _load_register(3);
+      }
     } else {
       _curr_buffer |= (value << _buffer_step);
       _buffer_step++;
@@ -33,6 +42,7 @@ class MMC1Mapper extends NROMMapper {
 
   /// called when 5 bits have been written to a register
   void _load_register(int id) {
+    _register_values[id] = _curr_buffer;
     if (_nb_chr == 0 && (id == 1 || id == 2)) return;
     switch (id) {
       case 0:
