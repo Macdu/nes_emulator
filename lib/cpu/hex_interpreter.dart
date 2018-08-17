@@ -31,7 +31,7 @@ class Interpreter {
 
       // 00 - BRK
       case 0x00:
-        _cpu_cycles += 7;
+        _cpu_cycles = 7;
         _state.pc += 2;
         _opcodes_used = 0;
         _save_state(true);
@@ -1019,7 +1019,7 @@ class Interpreter {
 
       // E5 - SBC - Zero Page
       case 0xE5:
-        _cpu_cycles = 4;
+        _cpu_cycles = 3;
         _state.a = _sbc(_state.a, _zero_page());
         break;
 
@@ -1094,7 +1094,7 @@ class Interpreter {
 
       // F6 - INC - Zero Page,X
       case 0xF6:
-        _cpu_cycles = 5;
+        _cpu_cycles = 6;
         int addr = _zero_page_x_addr();
         _memory[addr] = _add(_memory[addr], 1);
         break;
@@ -1423,7 +1423,9 @@ class Interpreter {
     }
     int relative = _state.pc + rel;
     // if page boundary crossed : one more cycle
-    if ((relative & 0xFF00) != (_state.pc & 0xFF00)) {
+    // relative + 2 because it's were the PC will be
+    // there may be a better way to do it
+    if (((relative + 2) & 0xFF00) != (_state.pc & 0xFF00)) {
       _cpu_cycles += 2;
     } else {
       _cpu_cycles++;

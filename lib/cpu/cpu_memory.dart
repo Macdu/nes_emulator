@@ -240,5 +240,5 @@ class CPUMemory {
   }
 
   /// return the 16-bit address when an IRQ happens
-  int get irq_address => _data[0xFFFE] + ((_data[0xFFFF]) << 8);
+  int get irq_address => _data[0xFFFE] | ((_data[0xFFFF]) << 8);
 }
