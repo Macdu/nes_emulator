@@ -113,8 +113,9 @@ class PPU {
   }
 
   // starts the first tick at scanline 0
-  int _curr_scanline = 261;
-  int _cycles_left = 0;
+  int _curr_scanline = 0;
+  // already 30 PPU cycles occured
+  int _cycles_left = 311;
 
   /// make one CPU tick
   void tick() {
@@ -126,7 +127,7 @@ class PPU {
       _curr_scanline++;
       if (_curr_scanline == 262) _curr_scanline = 0;
 
-      _cycles_left = 341;
+      _cycles_left += 341;
 
       if (_curr_scanline == 0) {
         // start a new frame
