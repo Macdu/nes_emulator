@@ -28,7 +28,7 @@ class Interpreter {
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
     //print(_state.pc.toRadixString(16));
-    //if (_state.pc == 0xACF5) debugger();
+    //if (_state.pc == 0xE8DA) debugger();
     switch (cond) {
 
       // 00 - BRK

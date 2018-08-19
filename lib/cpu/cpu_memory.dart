@@ -28,7 +28,7 @@ class CPUMemory {
   int _ppu_memory_buffer = 0;
 
   /// load a 16-bit upper part of the PGR
-  /// located at $C000-$CFFF
+  /// located at $C000-$FFFF
   void load_PGR_upper(Uint8List from, int start) {
     copy_memory(from, start, 1 << 14, 0xC000);
   }
@@ -40,7 +40,7 @@ class CPUMemory {
   }
 
   /// load the 32-bit whole PGR
-  /// located at $8000-$CFFF
+  /// located at $8000-$FFFF
   void load_PGR(Uint8List from, int start) {
     copy_memory(from, start, 1 << 15, 0x8000);
   }
