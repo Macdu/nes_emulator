@@ -59,11 +59,11 @@ class PPU {
 
   /// See [PPUMemory.x_scroll]
   /// Add also scrolling based on control register bit 0
-  int get x_delta => memory.x_scroll + (memory.control_register & 1) * 256;
+  int get x_delta => memory.x_scroll + (memory.nametable & 1) * 256;
 
   /// See [PPUMemory.y_scroll]
   /// Add also scrolling based on control register bit 1
-  int get y_delta => memory.y_scroll + (memory.control_register & 2) * 120;
+  int get y_delta => memory.y_scroll + (memory.nametable & 2) * 120;
 
   /// if the sprites are 8x8 or 8x16
   /// located in control register 1 bit 5
@@ -92,7 +92,6 @@ class PPU {
   CPU _cpu;
 
   /// The ppu mirroring used
-  /// Single screen is not really supported
   set mirroring(MirroringType type) {
     if (_mirroring != MirroringType.FourScreens) _mirroring = type;
   }
@@ -131,6 +130,10 @@ class PPU {
 
       if (_curr_scanline == 0) {
         // start a new frame
+
+        // first update scrolling
+        if (display_background) memory.transfer_temp_addr();
+
         _background._result.fillRange(
             0, _background._result.length, display_background ? 255 : 0);
         if (display_sprite) {
@@ -174,16 +177,21 @@ class PPU {
 
   /// render the current line
   void _render_line() {
+    // first update the scrolling if rendering is enabled
+    if (display_background) {
+      memory._update_horizontal_scrolling();
+    }
+
     List<Color> palette = _read_palette(memory);
     if (_sprites._nb_sprites[_curr_scanline] > 8) {
       overflow_flag = true;
     }
-    int curr_y = (_curr_scanline + y_delta) % 480;
+    int curr_y = y_delta % 480;
 
     int first_x = x_delta % 512;
 
     for (int x = 0; x < 256; x++) {
-      int curr_x = (x + x_delta) % 512;
+      int curr_x = (x + first_x) % 512;
 
       if (_background._result[curr_y * 256 * 2 + curr_x] == 255) {
         // we need to render the background here
@@ -211,5 +219,7 @@ class PPU {
       _screen.data[screen_pos + 1] = palette[color_rendered].v;
       _screen.data[screen_pos + 2] = palette[color_rendered].b;
     }
+    memory.y_scroll++;
+    memory.y_scroll %= 480;
   }
 }

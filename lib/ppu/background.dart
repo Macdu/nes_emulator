@@ -61,7 +61,6 @@ class Background {
           int color = high_bit |
               ((_ppu.memory._data[pattern + y] >> (7 - x)) & 1) |
               (((_ppu.memory._data[pattern + 8 + y] >> (7 - x)) & 1) << 1);
-
           _result[(old_line * 8 + y) * 256 * 2 + ((old_col & 0x3F) * 8 + x)] =
               color;
         }

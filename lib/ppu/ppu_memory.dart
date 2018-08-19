@@ -25,6 +25,38 @@ class PPUMemory {
   /// PPU status register
   int status_register = 0;
 
+  /// 16-bit address of the ppu ram, register v
+  int memory_addr = 0;
+
+  /// register t, PPU temporary address
+  int temp_addr = 0;
+
+  /// current write state of PPUSCROLL (0x2005) / PPUADDR (0x2006), register w
+  bool toggle_second_w = false;
+
+  /// current nametable
+  int nametable = 0;
+
+  /// happens during second write to $2006 and horizontal blank
+  /// update scrolling data and memory address
+  void transfer_temp_addr() {
+    memory_addr = temp_addr;
+    x_scroll &= 7;
+    x_scroll |= ((memory_addr & 0x1F) << 3);
+    y_scroll = ((memory_addr >> 2) & 0xF8) | ((memory_addr >> 12) /* & 7*/);
+    nametable = (memory_addr >> 10) & 3;
+  }
+
+  /// upadte only horizontal scrolling
+  /// should also update memory_addr
+  void _update_horizontal_scrolling() {
+    x_scroll &= 7;
+    x_scroll |= ((temp_addr & 0x1F) << 3);
+
+    nametable &= 2;
+    nametable |= (temp_addr >> 10) & 1;
+  }
+
   // get real index through memory mirroring
   int _get_addr(int index) {
     index &= (0x4000 - 1);

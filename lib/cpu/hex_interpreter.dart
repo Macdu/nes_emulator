@@ -27,6 +27,8 @@ class Interpreter {
     _cpu_cycles = 0;
     _opcodes_used = 1;
     int cond = _memory[_state.pc];
+    //print(_state.pc.toRadixString(16));
+    //if (_state.pc == 0xACF5) debugger();
     switch (cond) {
 
       // 00 - BRK
@@ -1131,7 +1133,6 @@ class Interpreter {
       // FF - Future Expansion
 
       default:
-        debugger();
         throw "Opcode ${cond.toRadixString(16)} Not Implemented";
     }
     _state.pc += _opcodes_used;

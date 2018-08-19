@@ -14,22 +14,11 @@ class CPUMemory {
   /// 8-bit address of the sprite index
   int _sprite_memory_addr = 0;
 
-  /// 16-bit address of the ppu ram
-  int _ppu_memory_addr = 0;
-
-  /// state of the stored address
-  /// true -> 8 lower bits
-  /// false -> 8 upper bits
-  bool _ppu_addr_state_upper = true;
-
   /// current joypad button id to be read
   int _curr_button_id = 0;
 
   /// state of joypad reset
   bool _joypad_reset = false;
-
-  /// current write state of PPUSCROLL (0x2005)
-  bool _is_scroll_x = true;
 
   /// get the increase of [_ppu_memory_addr] after each read/write
   int get _ppu_addr_increase =>
@@ -111,9 +100,9 @@ class CPUMemory {
       case 0x2002:
         int res = ppu_memory.status_register;
         // reading PPUSTATUS reset bit 7, PPUSCROLL and PPUADDRESS
-        ppu_memory.status_register &= ~(1 << 7);
-        _is_scroll_x = true;
-        _ppu_addr_state_upper = true;
+        ppu_memory
+          ..status_register &= ~(1 << 7)
+          ..toggle_second_w = false;
         return res;
 
       case 0x2004:
@@ -121,15 +110,16 @@ class CPUMemory {
         return res;
 
       case 0x2007:
-        int res = ppu_memory[_ppu_memory_addr];
-        if ((_ppu_memory_addr & 0x3FFF) < 0x3F00) {
+        int res = ppu_memory[ppu_memory.memory_addr];
+        if ((ppu_memory.memory_addr & 0x3FFF) < 0x3F00) {
           // emulate buffered read when to reading palette
           int temp = _ppu_memory_buffer;
           _ppu_memory_buffer = res;
           res = temp;
         }
-        _ppu_memory_addr += _ppu_addr_increase;
-        _ppu_memory_addr &= 0xFFFF;
+        // for more accuracy, scrolling related registers should also be set
+        ppu_memory.memory_addr += _ppu_addr_increase;
+        ppu_memory.memory_addr &= 0xFFFF;
         return res;
 
       case 0x4016:
@@ -173,7 +163,10 @@ class CPUMemory {
 
     switch (index) {
       case 0x2000:
-        ppu_memory.control_register = value;
+        ppu_memory
+          ..control_register = value
+          ..temp_addr &= ~(3 << 10)
+          ..temp_addr |= (value & 3) << 10;
         break;
       case 0x2001:
         ppu_memory.mask_register = value;
@@ -191,28 +184,40 @@ class CPUMemory {
         _sprite_memory_addr &= 0xFF;
         break;
       case 0x2005:
-        if (_is_scroll_x) {
-          ppu_memory.x_scroll = value;
+        if (ppu_memory.toggle_second_w) {
+          ppu_memory
+            ..temp_addr &= 0xC1F
+            ..temp_addr |= ((value & 7) << 12)
+            ..temp_addr |= ((value & 0xF8) << 2)
+            ..toggle_second_w = false;
         } else {
-          ppu_memory.y_scroll = value;
+          ppu_memory
+            ..x_scroll &= ~7
+            ..x_scroll |= value & 7
+            ..temp_addr &= ~0x1F
+            ..temp_addr |= (value >> 3)
+            ..toggle_second_w = true;
         }
-        _is_scroll_x = !_is_scroll_x;
         break;
       case 0x2006:
-        if (_ppu_addr_state_upper) {
-          _ppu_memory_addr &= ~(0xFF00);
-          _ppu_memory_addr |= value << 8;
-          _ppu_addr_state_upper = false;
+        if (ppu_memory.toggle_second_w) {
+          ppu_memory
+            ..temp_addr &= 0xFF00
+            ..temp_addr |= value
+            ..transfer_temp_addr()
+            ..toggle_second_w = false;
         } else {
-          _ppu_memory_addr &= ~(0xFF);
-          _ppu_memory_addr |= value;
-          _ppu_addr_state_upper = true;
+          ppu_memory
+            ..temp_addr &= 0x00FF
+            ..temp_addr |= ((value & 0x3F) << 8)
+            ..toggle_second_w = true;
         }
         break;
       case 0x2007:
-        ppu_memory[_ppu_memory_addr] = value;
-        _ppu_memory_addr += _ppu_addr_increase;
-        _ppu_memory_addr &= 0xFFFF;
+        //if (ppu_memory.memory_addr == 0x3F01) debugger();
+        ppu_memory[ppu_memory.memory_addr] = value;
+        ppu_memory.memory_addr += _ppu_addr_increase;
+        ppu_memory.memory_addr &= 0xFFFF;
         break;
       case 0x4014:
         // DMA
