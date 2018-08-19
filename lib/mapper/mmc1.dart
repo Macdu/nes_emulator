@@ -61,9 +61,9 @@ class MMC1Mapper extends NROMMapper {
       case 0:
         // control register
         if ((value & 2) == 0)
-          _cpu.ppu.mirroring = MirroringType.SingleScreen;
+          _cpu.ppu.memory.mirroring = MirroringType.SingleScreen;
         else
-          _cpu.ppu.mirroring = ((value & 1) == 0)
+          _cpu.ppu.memory.mirroring = ((value & 1) == 0)
               ? MirroringType.Vertical
               : MirroringType.Horizontal;
         bool old_copy_32k = _copy_pgr_32k;

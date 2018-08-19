@@ -91,13 +91,6 @@ class PPU {
   CPU get cpu => _cpu;
   CPU _cpu;
 
-  /// The ppu mirroring used
-  set mirroring(MirroringType type) {
-    if (_mirroring != MirroringType.FourScreens) _mirroring = type;
-  }
-
-  MirroringType _mirroring;
-
   void init(CanvasElement target, CPU cpu) {
     _canvasToDraw = target;
     _background._ppu = this;

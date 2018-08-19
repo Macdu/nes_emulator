@@ -9,7 +9,7 @@ class Background {
 
   static const List<List<int>> _mirroring_tables = const [
     // Horizontal
-    [0, 0, 0x800, 0x800],
+    [0, 0, 0x400, 0x400],
     // Vertical
     [0, 0x400, 0, 0x400],
     // Four screens
@@ -43,7 +43,8 @@ class Background {
         col -= 32;
         mirroring_offset |= 1;
       }
-      table_offset = _mirroring_tables[_ppu._mirroring.index][mirroring_offset];
+      table_offset =
+          _mirroring_tables[_ppu.memory._mirroring.index][mirroring_offset];
       int real_tile = line * 32 + col;
       // get the high bit
       int square = ((col & 2) >> 1) + (line & 2);

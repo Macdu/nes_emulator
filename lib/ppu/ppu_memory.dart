@@ -37,6 +37,13 @@ class PPUMemory {
   /// current nametable
   int nametable = 0;
 
+  /// The ppu mirroring used
+  set mirroring(MirroringType type) {
+    if (_mirroring != MirroringType.FourScreens) _mirroring = type;
+  }
+
+  MirroringType _mirroring;
+
   /// happens during second write to $2006 and horizontal blank
   /// update scrolling data and memory address
   void transfer_temp_addr() {
@@ -57,12 +64,26 @@ class PPUMemory {
     nametable |= (temp_addr >> 10) & 1;
   }
 
+  static const List<List<int>> _mirroring_loc = const [
+    // Horizontal
+    [0, 0, 0x400, 0x400],
+    // Vertical
+    [0, 0x400, 0, 0x400],
+    // Four screens
+    [0, 0x400, 0x800, 0xC00],
+    // Single screen
+    // Not sure abouthis one
+    [0, 0x400, 0x800, 0xC00],
+  ];
+
   // get real index through memory mirroring
   int _get_addr(int index) {
     index &= (0x4000 - 1);
-
-    if (index >= 0x3000 && index < 0x3F00) {
-      index -= 0x1000;
+    if (index >= 0x2000 && index < 0x3F00) {
+      // nametable mirroring
+      return 0x2000 |
+          _mirroring_loc[_mirroring.index][((index >> 10) & 3)] |
+          (index & 0x3FF);
     } else if (index >= 0x3F00 && index < 0x4000) {
       index = 0x3F00 | (index & 0x1F);
       if ((index & 3) == 0) {
@@ -76,7 +97,7 @@ class PPUMemory {
   int operator [](int index) {
     index = _get_addr(index);
 
-    // to be improved latter
+    // to be improved later
     return _data[index];
   }
 

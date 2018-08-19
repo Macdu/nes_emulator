@@ -76,11 +76,11 @@ class NESEmulator {
     _curr_rom = rom;
 
     if ((rom[0x6] & (1 << 3)) != 0) {
-      _cpu.ppu.mirroring = MirroringType.FourScreens;
+      _cpu.ppu.memory.mirroring = MirroringType.FourScreens;
     } else if ((rom[0x6] & 1) == 1) {
-      _cpu.ppu.mirroring = MirroringType.Vertical;
+      _cpu.ppu.memory.mirroring = MirroringType.Vertical;
     } else {
-      _cpu.ppu.mirroring = MirroringType.Horizontal;
+      _cpu.ppu.memory.mirroring = MirroringType.Horizontal;
     }
 
     reset();
