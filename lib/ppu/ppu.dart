@@ -133,6 +133,7 @@ class PPU {
           _sprites._render();
         } else {
           _sprites._result.fillRange(0, _sprites._result.length, 0);
+          _sprites._nb_sprites.fillRange(0, _sprites._nb_sprites.length, 0);
           _sprites._sprite0_opaque_pixels
               .fillRange(0, _sprites._sprite0_opaque_pixels.length, false);
         }
